@@ -29,8 +29,8 @@ class EpochsPSD :
     Methods :
     ============
     __init__                    : Compute all the PSD of each epoch
-    plot_topomap_frequency      : Plot the map of the power for a given frequency and epoch
-    plot_topomap_band_frequency : Plot the map of the power for a given band frequency and epoch
+    plot_topomap                : Plot the map of the power for a given frequency and epoch
+    plot_topomap_band           : Plot the map of the power for a given band frequency and epoch
     """
 
 
@@ -78,7 +78,7 @@ class EpochsPSD :
                                               n_overlap = n_overlap,
                                               n_per_seg = n_per_seg)
 
-    def plot_topomap_frequency(self, epoch_index, freq_index, axes = None) :
+    def plot_topomap(self, epoch_index, freq_index, axes = None) :
         """
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
@@ -101,7 +101,7 @@ class EpochsPSD :
         plot_topomap(psd_values, self.info, axes = axes)
 
 
-    def plot_topomap_band_frequency(self, epoch_index, freq_index_min, freq_index_max, axes = None) :
+    def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
         , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
@@ -110,6 +110,34 @@ class EpochsPSD :
         Arguments :
         ============
         epoch_index    (int)        : index of the epoch in epochs
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+        axes
+        vmin
+        vmax
+
+        Returns :
+        ============
+        None
+        """
+        # Handling error if no coordinates are found
+        if self.info['chs'][0]['loc'] is None :
+            raise ValueError("No locations available for this dataset")
+
+        psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
+        psd_mean = mean(psd_values, axis = 1)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax)
+
+
+    def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+        """
+        Plot the map of the average power for a given frequency band chosen by freq_index_min and
+        freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
+        return an error if the class is not initialized with the coordinates of the different
+        electrodes.
+
+        Arguments :
+        ============
         freq_index_max (int)        : index of the min frequency in self.freqs
         freq_index_min (int)        : index of the max frequency in self.freqs
 
@@ -122,7 +150,7 @@ class EpochsPSD :
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
 
-        psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
-        print(psd_values.shape)
-        psd_mean = mean(psd_values, axis = 1)
-        plot_topomap(psd_mean, self.info, axes = axes)
+        psd_values = self.data[:, :, freq_index_min : freq_index_max]
+        psd_mean = mean(psd_values, axis = 2)  #average over frequency band
+        psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax)

@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QSlider, QLabel, QLineEdit
+from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QSlider, QLabel, QLineEdit, QCheckBox
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -18,26 +18,25 @@ class Window(QDialog):
         # Dataset
         self.epochs = get_epochs()
         self.psd = EpochsPSD(self.epochs, fmin = 0, fmax = 75, tmin = 0, tmax = 0.5, method = 'welch',
-                             n_fft = 256, n_per_seg = 30, n_overlap = 15)
+                             n_fft = 512, n_per_seg = 30, n_overlap = 15)
 
         # a figure instance to plot on
-        self.figure = plt.figure()
+        self.figure = plt.figure(figsize = (10,5))
         # Canvas
         self.canvas = FigureCanvas(self.figure)
         # Matplotlib toolbar
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Frequency lines
-        self.fminLabel = QLabel('Min Frequency :', self)
+        self.fminLabel = QLabel('Min Frequency (Hz):', self)
         self.fmin = QLineEdit()
         self.fmin.setValidator(QIntValidator())
         self.fmin.setMaxLength(4)
 
-        self.fmaxLabel = QLabel('Max Frequency :', self)
+        self.fmaxLabel = QLabel('Max Frequency (Hz):', self)
         self.fmax = QLineEdit()
         self.fmax.setValidator(QIntValidator())
         self.fmax.setMaxLength(4)
-
 
         # Epochs
         self.epochsLabel = QLabel('Epoch:', self)
@@ -48,6 +47,16 @@ class Window(QDialog):
         self.epochsSl.setMinimum(0)
         self.epochsSl.setValue(0)
         self.epochsSl.setTickInterval(1)
+
+        # Show mean of epochs
+        self.showMean = QCheckBox('Show Average over Epochs', self)
+
+        # Value maximum of the amplitude
+        self.vminLabel = QLabel('Scaling for amplitude (µV / m²):', self)
+        self.vmin = QLineEdit()
+        self.vmin.setValidator(QDoubleValidator())
+        self.vmin.setMaxLength(15)
+
 
         # set the layout
         layout = QVBoxLayout()
@@ -62,17 +71,24 @@ class Window(QDialog):
 
         layout.addWidget(self.epochsLabel)
         layout.addWidget(self.epochsSl)
+        layout.addWidget(self.showMean)
+
+        layout.addWidget(self.vminLabel)
+        layout.addWidget(self.vmin)
         self.setLayout(layout)
 
         self.epochsSl.valueChanged.connect(self.valueChange)
         self.fmin.editingFinished.connect(self.valueChange)
         self.fmax.editingFinished.connect(self.valueChange)
-
+        self.showMean.stateChanged.connect(self.valueChange)
+        self.vmin.editingFinished.connect(self.valueChange)
 
 
     def valueChange(self) :
         fmin = int(self.fmin.text())
         fmax = int(self.fmax.text())
+        vmax = float(self.vmin.text())
+
 
         # Simple iteration on psd.freqs to get all the index for frequencies within this range
         f_index_min, f_index_max = -1, 0
@@ -81,22 +97,37 @@ class Window(QDialog):
             if freq <  fmax : f_index_max += 1
 
         epoch_index = self.epochsSl.value()
-        self.plot(epoch_index, f_index_min, f_index_max)
+        self.plot(epoch_index, f_index_min, f_index_max, vmax)
 
 
-    def plot(self, epoch_index, f_index_min, f_index_max):
+    def plot(self, epoch_index, f_index_min, f_index_max, vmax):
         ''' Plot the topomap'''
+        fmin = self.psd.freqs[f_index_min]
+        fmax = self.psd.freqs[f_index_max]
         # instead of ax.hold(False)
         self.figure.clear()
-        # create an axis
-        ax = self.figure.add_subplot(111)
-        # plot data
-        self.psd.plot_topomap_band_frequency(epoch_index, f_index_min, f_index_max, axes = ax)
-        ax.set_title("Map of the power for the frequency band [{:.2f}, {:.2f}]".format(
-                     self.psd.freqs[f_index_min], self.psd.freqs[f_index_max]))
+        self.figure.suptitle('Multitaper, average over frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
+                     fontsize = 20, fontweight = 'bold')
+
+        nbFrames = 2 if self.showMean.checkState() else 1
+
+        # plot data of the selected epoch
+        ax = self.figure.add_subplot(1, nbFrames, 1)
+        image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+        ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
+
+        # plot average data if showMean is checked
+        if self.showMean.checkState() :
+            ax = self.figure.add_subplot(1, nbFrames, 2)
+            self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            ax.set_title("Average", fontsize = 15, fontweight = 'light')
+
+        cax = self.figure.add_axes([0.915, 0.15, 0.01, 0.7])
+        plt.colorbar(image, cax = cax)
+        self.figure.subplots_adjust(top = 0.8, right = 0.8, left = 0.1, bottom = 0.1)
+
         # refresh canvas
         self.canvas.draw()
-
 
 
 
