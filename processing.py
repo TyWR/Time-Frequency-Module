@@ -10,6 +10,7 @@ set of epochs.
 from mne.time_frequency import psd_multitaper, psd_welch
 from mne.viz import plot_topomap
 import matplotlib.pyplot as plt
+from numpy import mean
 
 
 class EpochsPSD :
@@ -28,7 +29,8 @@ class EpochsPSD :
     Methods :
     ============
     __init__                    : Compute all the PSD of each epoch
-    plot_map_epoch              : Plot the map of the power for a given frequency and epoch
+    plot_topomap_frequency      : Plot the map of the power for a given frequency and epoch
+    plot_topomap_band_frequency : Plot the map of the power for a given band frequency and epoch
     """
 
 
@@ -76,7 +78,7 @@ class EpochsPSD :
                                               n_overlap = n_overlap,
                                               n_per_seg = n_per_seg)
 
-    def plot_map_epoch(self, epoch_index, freq_index, axes = None) :
+    def plot_topomap_frequency(self, epoch_index, freq_index, axes = None) :
         """
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
@@ -97,3 +99,30 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index]
         plot_topomap(psd_values, self.info, axes = axes)
+
+
+    def plot_topomap_band_frequency(self, epoch_index, freq_index_min, freq_index_max, axes = None) :
+        """
+        Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
+        , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
+        the class is not initialized with the coordinates of the different electrodes.
+
+        Arguments :
+        ============
+        epoch_index    (int)        : index of the epoch in epochs
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+
+
+        Returns :
+        ============
+        None
+        """
+        # Handling error if no coordinates are found
+        if self.info['chs'][0]['loc'] is None :
+            raise ValueError("No locations available for this dataset")
+
+        psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
+        print(psd_values.shape)
+        psd_mean = mean(psd_values, axis = 1)
+        plot_topomap(psd_mean, self.info, axes = axes)
