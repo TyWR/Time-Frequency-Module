@@ -32,11 +32,13 @@ class Window(QDialog):
         self.fmin = QLineEdit()
         self.fmin.setValidator(QIntValidator())
         self.fmin.setMaxLength(4)
+        self.fmin.setText("10")
 
         self.fmaxLabel = QLabel('Max Frequency (Hz):', self)
         self.fmax = QLineEdit()
         self.fmax.setValidator(QIntValidator())
         self.fmax.setMaxLength(4)
+        self.fmax.setText("20")
 
         # Epochs
         self.epochsLabel = QLabel('Epoch:', self)
@@ -56,6 +58,7 @@ class Window(QDialog):
         self.vmin = QLineEdit()
         self.vmin.setValidator(QDoubleValidator())
         self.vmin.setMaxLength(15)
+        self.vmin.setText("1e-12")
 
 
         # set the layout
@@ -83,12 +86,12 @@ class Window(QDialog):
         self.showMean.stateChanged.connect(self.valueChange)
         self.vmin.editingFinished.connect(self.valueChange)
 
+        self.valueChange()
 
     def valueChange(self) :
         fmin = int(self.fmin.text())
         fmax = int(self.fmax.text())
         vmax = float(self.vmin.text())
-
 
         # Simple iteration on psd.freqs to get all the index for frequencies within this range
         f_index_min, f_index_max = -1, 0
@@ -97,16 +100,15 @@ class Window(QDialog):
             if freq <  fmax : f_index_max += 1
 
         epoch_index = self.epochsSl.value()
-        self.plot(epoch_index, f_index_min, f_index_max, vmax)
+        self.plot_maps(epoch_index, f_index_min, f_index_max, vmax)
 
-
-    def plot(self, epoch_index, f_index_min, f_index_max, vmax):
+    def plot_maps(self, epoch_index, f_index_min, f_index_max, vmax):
         ''' Plot the topomap'''
         fmin = self.psd.freqs[f_index_min]
         fmax = self.psd.freqs[f_index_max]
         # instead of ax.hold(False)
         self.figure.clear()
-        self.figure.suptitle('Multitaper, average over frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
+        self.figure.suptitle('Frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
                      fontsize = 20, fontweight = 'bold')
 
         nbFrames = 2 if self.showMean.checkState() else 1
@@ -122,14 +124,13 @@ class Window(QDialog):
             self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
+        # plot a common colorbar for both representations
         cax = self.figure.add_axes([0.915, 0.15, 0.01, 0.7])
         plt.colorbar(image, cax = cax)
         self.figure.subplots_adjust(top = 0.8, right = 0.8, left = 0.1, bottom = 0.1)
 
         # refresh canvas
         self.canvas.draw()
-
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

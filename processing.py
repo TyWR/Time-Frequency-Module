@@ -3,8 +3,8 @@
                                 Processing
 
 This file contains several functions to compute PSD on epochs. It creates a instance
-of a class called EpochsDSP. This class will contain all the DSPs informations of a
-set of epochs.
+of a class called EpochsDSP. EpochsDSP enable to handle all the psds data from all the
+different epochs. This class also comes with different methods to visualize the psds.
 =================================================================================
 """
 from mne.time_frequency import psd_multitaper, psd_welch
@@ -15,7 +15,8 @@ from numpy import mean
 
 class EpochsPSD :
     """
-    This class contains the PSD of a set of Epochs.
+    This class contains the PSD of a set of Epochs. It stores the data of the psds of
+    each epoch. The psds are calculated with the Library mne.
 
     Attributes :
     ============
@@ -25,18 +26,20 @@ class EpochsPSD :
     tmax        (float)         : higher time bound for each epoch
     info        (mne Infos)     : info of the epochs
     method      (str)           : method used for PSD (multitaper or welch)
+    data        (numpy arr.)    : dataset with all the psds data
+    freqs       (arr.)          : list containing the frequencies of the psds
 
     Methods :
     ============
     __init__                    : Compute all the PSD of each epoch
     plot_topomap                : Plot the map of the power for a given frequency and epoch
     plot_topomap_band           : Plot the map of the power for a given band frequency and epoch
+    plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
     """
-
 
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
         """
-        Computes the PSD of the epochs with the correct method multitaper or welch
+        Computes the PSD of the epochs with the correct method multitaper or welch.
 
         Arguments :
         ============
@@ -60,7 +63,7 @@ class EpochsPSD :
         if method == 'multitaper' :
             bandwidth = kwargs.get('bandwidth', 4.)
 
-            print("Computing Mulitaper PSD with parameter bandwidth = {} on {} Epochs ...".format(
+            print("Computing Mulitaper PSD with parameter bandwidth = {} on {} Epochs".format(
                   bandwidth, len(self.info['chs'])))
             self.data, self.freqs = psd_multitaper(epochs, fmin = fmin, fmax = fmax, tmin = tmin, tmax = tmax, bandwidth = bandwidth)
 
@@ -70,7 +73,7 @@ class EpochsPSD :
             n_per_seg = kwargs.get('n_per_seg', n_fft)
             n_overlap = kwargs.get('n_overlap', 0)
 
-            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs ...".format(
+            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs".format(
                   n_fft, n_per_seg, n_overlap, len(self.info['chs'])))
             self.data, self.freqs = psd_welch(epochs, fmin = fmin, fmax = fmax,
                                               tmin = tmin, tmax = tmax,
@@ -91,15 +94,14 @@ class EpochsPSD :
 
         Returns :
         ============
-        None
+        Instance of Matplotlib.Image
         """
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index]
-        plot_topomap(psd_values, self.info, axes = axes)
-
+        return plot_topomap(psd_values, self.info, axes = axes)
 
     def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -118,7 +120,7 @@ class EpochsPSD :
 
         Returns :
         ============
-        None
+        Instance of Matplotlib.Image
         """
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
@@ -127,7 +129,6 @@ class EpochsPSD :
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
         return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax)
-
 
     def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -144,7 +145,7 @@ class EpochsPSD :
 
         Returns :
         ============
-        None
+        Instance of Matplotlib.Image
         """
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
