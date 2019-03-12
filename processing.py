@@ -60,7 +60,7 @@ class EpochsPSD :
 
             print("Computing Mulitaper PSD with parameter bandwidth = {} on {} Epochs ...".format(
                   bandwidth, len(self.info['chs'])))
-            self.psds, self.freqs = psd_multitaper(epochs, fmin = fmin, fmax = fmax, tmin = tmin, tmax = tmax, bandwidth = bandwidth)
+            self.data, self.freqs = psd_multitaper(epochs, fmin = fmin, fmax = fmax, tmin = tmin, tmax = tmax, bandwidth = bandwidth)
 
 
         if method == 'welch'      :
@@ -70,12 +70,11 @@ class EpochsPSD :
 
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs ...".format(
                   n_fft, n_per_seg, n_overlap, len(self.info['chs'])))
-            self.psds, self.freqs = psd_welch(epochs, fmin = fmin, fmax = fmax,
+            self.data, self.freqs = psd_welch(epochs, fmin = fmin, fmax = fmax,
                                               tmin = tmin, tmax = tmax,
                                               n_fft = n_fft,
                                               n_overlap = n_overlap,
                                               n_per_seg = n_per_seg)
-
 
     def plot_map_epoch(self, epoch_index, freq_index, axes = None) :
         """
@@ -96,5 +95,5 @@ class EpochsPSD :
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
 
-        psd_values = self.psds[epoch_index, :, freq_index]
+        psd_values = self.data[epoch_index, :, freq_index]
         plot_topomap(psd_values, self.info, axes = axes)
