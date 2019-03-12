@@ -4,7 +4,6 @@ from mne.datasets import sample
 from processing import EpochsPSD
 import matplotlib.pyplot as plt
 
-
 def get_epochs() :
     data_path = sample.data_path()
 
