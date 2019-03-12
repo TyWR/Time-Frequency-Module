@@ -11,25 +11,28 @@ import struct
 
 def read_ep(path, **kwargs) :
     """
-    =================================================================================
-    *
-    *   read file with format .ep, and returns a mne.io.Raw object containing
-    *   the data.
-    *   ***********************************************************************************
-    *   path (str)                      : datapath of the .ep file
-    *   ch_names (array(str))           : names of the channels (default EEG(number))
-    *   sfreq (float)                   : sampling frequency
-    *  ***********************************************************************************
-    *   output :
-    *   mne.io.Raw
-    =================================================================================
+    Reads file with format .ep, and returns a mne.io.Raw object containing the data.
+
+    Arguments :
+    ============
+    path (str)                      : datapath of the .ep file
+    ch_names (array(str)), , opt.   : names of the channels (default EEG(number))
+    sfreq (float), , opt.           : sampling frequency
+    montage (mne Montage), opt.     : montage containing coordinates of the channels
+
+    Returns :
+    ============
+    Instance of mne.io.Raw
     """
-    data = np.loadtxt(path, unpack = True)
+
+    data       = np.loadtxt(path, unpack = True)
     n_channels = data.shape[0]
 
-    ch_names = ['EEG{}'.format(i) for i in range(n_channels)]
-    sfreq = 1e3
-    ch_types = ['eeg' for i in range(n_channels)]
+    ch_names   = ['EEG{}'.format(i) for i in range(n_channels)]
+    sfreq      = 1e3
+    ch_types   = ['eeg' for i in range(n_channels)]
+    montage    = None
+
     if kwargs is not None :
         for key, value in kwargs.items() :
             # ch_name argument
@@ -39,63 +42,69 @@ def read_ep(path, **kwargs) :
                 ch_names = value
             # sfreq argument
             elif key == 'sfreq' : sfreq = value
+            # montage argument
+            elif key == 'montage' : montage = value
             # keyword error
-            else : raise ValueError("Incorrect keyword, must be ch_names or sfreq")
+            else : raise ValueError("Incorrect keyword, must be ch_names, sfreq or montage")
 
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types)
+    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
     return RawArray(data, infos)
 
 def read_eph(path, **kwargs) :
     """
-    =================================================================================
-    *                                   read_eph
-    *
-    *   read file with format .eph, and returns a mne.io.Raw object containing
-    *   the data.
-    *   ***********************************************************************************
-    *   input :
-    *   path (str)                      : datapath of the .eph file
-    *   ch_names (array[str])           : names of the channels (default EEG(number))
-    *   ***********************************************************************************
-    *   output                          : mne.io.Raw
-    =================================================================================
+    Reads file with format .ep, and returns a mne.io.Raw object containing the data.
+
+    Arguments :
+    ============
+    path (str)                      : datapath of the .ep file
+    ch_names (array[str]), opt.     : names of the channels (default EEG(number))
+    sfreq (float), opt.             : sampling frequency
+    montage (mne Montage), opt.     : montage containing coordinates of the channels
+
+    Returns :
+    ============
+    Instance of mne.io.Raw
     """
-    # Read parameters from header and data
+    # Read parameters from header
     with open(path, 'r') as file:
         n_channels, n_times, sfreq = file.readline().strip('\n').split(' ')
         n_channels, n_times        = int(n_channels), int(n_times)
+    # Read data
     data = np.genfromtxt(path, skip_header = 1, unpack = True)
 
     ch_names = ['EEG{}'.format(i + 1) for i in range(n_channels)]
     ch_types = ['eeg' for i in range(n_channels)]
+    montage  = None
+
     if kwargs is not None :
         for key, value in kwargs.items() :
-            # ch_name argument
+
             if key == 'ch_names' :
                 if len(value) != n_channels :
                     raise ValueError("length of ch_names is {} whereas n_channel = {}".format(len(value), n_channels))
                 ch_names = value
-            # keyword error
-            else : raise ValueError("Incorrect keyword must be ch_names")
 
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types)
+            elif key == 'montage' : montage = value
+
+            else : raise ValueError("Incorrect keyword must be ch_names or montage")
+
+    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
     return RawArray(data, infos)
 
-def read_sef(path) :
+def read_sef(path, montage = None) :
     """
-    =================================================================================
-    *                                   read_sef
-    *
-    *   read file with format .eph, and returns a mne.io.Raw object containing
-    *   the data.
-    *   ***********************************************************************************
-    *   input :
-    *   path (str)                      : datapath of the .sef file
-    *   ch_names (array[str])           : names of the channels (default EEG(number))
-    *   ***********************************************************************************
-    *   output                          : mne.io.Raw
-    =================================================================================
+    Reads file with format .sef, and returns a mne.io.Raw object containing the data.
+
+    Arguments :
+    ============
+    path (str)                      : datapath of the .ep file
+    montage (mne Montage), opt.     : montage containing coordinates of the channels
+
+    Returns :
+    ============
+    Instance of mne.io.Raw
     """
+
     f = open(path, 'rb')
     #   Read fixed part of the header
     version             = f.read(4).decode('utf-8')

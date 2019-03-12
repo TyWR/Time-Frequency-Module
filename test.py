@@ -18,17 +18,17 @@ events = mne.read_events(event_fname)
 
 # Set up pick list: EEG + MEG - bad channels (modify to your needs)
 raw.info['bads'] += ['MEG 2443', 'EEG 053']  # bads + 2 more
-picks = mne.pick_types(raw.info, meg=False, eeg=True, stim=True, eog=False,
+picks = mne.pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False,
                        exclude='bads')
 
 # Read epochs
 epochs = mne.Epochs(raw, events, event_id, tmin, tmax, proj=True,
                     picks=picks, baseline=(None, 0), preload=True)
 
-epochs.plot()
 
-psd = EpochsPSD(epochs, fmin = 0, fmax = 100, tmin = 0, tmax = 0.5, method = 'multitaper', bandwidth = 3)
+# Compute all the psds
+psd = EpochsPSD(epochs, fmin = 0, fmax = 100, tmin = 0, tmax = 0.5, method = 'welch', n_fft = 256, n_per_seg = 30, n_overlap = 15)
 
-
-plt.figure(figsize = (8,8))
-psd.plot_map_epoch(3, 15)
+# Choose a frequency in the list
+freq_index = 17             # for f = 9.97114 Hz
+psd.plot_map_epoch(3, 17)   # Plot power for 3rd epoch, and f = 9.97114 Hz
