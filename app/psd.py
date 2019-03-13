@@ -64,36 +64,41 @@ class PSDWindow(QDialog):
         # Recap of the parameters
         self.parameters = QLabel(epochsPSD.__str__())
 
-        # set the layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.toolbar)
-        layout.addWidget(self.canvas)
+        self.set_grid_layout()
+        self.set_bindings()
+        self.valueChange()
 
-        layout.addWidget(self.fminLabel)
-        layout.addWidget(self.fmin)
+    def set_grid_layout(self) :
+        grid = QGridLayout()
 
-        layout.addWidget(self.fmaxLabel)
-        layout.addWidget(self.fmax)
+        grid.addWidget(self.toolbar, 1, 1, 1, 2)
+        grid.addWidget(self.canvas, 2, 1, 1, 2)
 
-        layout.addWidget(self.showSingleEpoch)
-        layout.addWidget(self.epochsLabel)
-        layout.addWidget(self.epochsSl)
-        layout.addWidget(self.showMean)
+        grid.addWidget(self.fminLabel, 3, 1, 1, 1)
+        grid.addWidget(self.fmin, 4, 1, 1, 1)
 
-        layout.addWidget(self.vminLabel)
-        layout.addWidget(self.vmin)
+        grid.addWidget(self.fmaxLabel, 3, 2, 1, 1)
+        grid.addWidget(self.fmax, 4, 2, 1, 1)
 
-        layout.addWidget(self.parameters)
-        self.setLayout(layout)
+        grid.addWidget(self.showSingleEpoch, 5, 1, 1, 1)
+        grid.addWidget(self.showMean, 5, 2, 1, 1)
+        grid.addWidget(self.epochsLabel, 6, 1, 1, 1)
+        grid.addWidget(self.epochsSl, 7, 1, 1, 2)
 
+        grid.addWidget(self.vminLabel, 8, 1, 1, 1)
+        grid.addWidget(self.vmin, 9, 1, 1, 1)
+
+        grid.addWidget(self.parameters, 10, 1, 1, 2)
+
+        self.setLayout(grid)
+
+    def set_bindings(self) :
         self.epochsSl.valueChanged.connect(self.valueChange)
         self.fmin.editingFinished.connect(self.valueChange)
         self.fmax.editingFinished.connect(self.valueChange)
         self.showMean.stateChanged.connect(self.valueChange)
         self.showSingleEpoch.stateChanged.connect(self.valueChange)
         self.vmin.editingFinished.connect(self.valueChange)
-
-        self.valueChange()
 
     def valueChange(self) :
         fmin = int(self.fmin.text())
@@ -118,8 +123,8 @@ class PSDWindow(QDialog):
         fmax = self.psd.freqs[f_index_max]
 
         self.figure.clear()
-        self.figure.suptitle('Frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
-                     fontsize = 20, fontweight = 'bold')
+        #self.figure.suptitle('Frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
+        #             fontsize = 20, fontweight = 'bold')
 
         # Plot 2 topomaps if showMean is checked, one otherwise
         both = self.showMean.checkState() and self.showSingleEpoch.checkState()
