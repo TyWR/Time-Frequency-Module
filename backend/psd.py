@@ -101,7 +101,7 @@ class EpochsPSD :
             raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index]
-        return plot_topomap(psd_values, self.info, axes = axes)
+        return plot_topomap(psd_values, self.info, axes = axes, show = False)
 
     def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -128,7 +128,7 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False)
 
     def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -154,4 +154,4 @@ class EpochsPSD :
         psd_values = self.data[:, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False)

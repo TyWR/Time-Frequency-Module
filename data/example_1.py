@@ -1,10 +1,8 @@
 import mne
 from mne import io
 from mne.datasets import sample
-from processing import EpochsPSD
-import matplotlib.pyplot as plt
 
-def get_epochs() :
+def get_example1() :
     data_path = sample.data_path()
 
     raw_fname = data_path + '/MEG/sample/sample_audvis_filt-0-40_raw.fif'

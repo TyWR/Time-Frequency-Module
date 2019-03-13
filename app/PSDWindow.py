@@ -1,4 +1,3 @@
-import sys
 from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QSlider, QLabel, QLineEdit, QCheckBox
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -6,19 +5,20 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
-from example_data import get_epochs
-from processing import EpochsPSD
+import sys
+sys.path.append("..")
 
 
-class Window(QDialog):
+"""
+File containing the PSDWindow class, which enable to visualize the PSDs
+"""
+class PSDWindow(QDialog):
 
-    def __init__(self, parent=None):
-        super(Window, self).__init__(parent)
+    def __init__(self, epochsPSD, parent=None):
+        super(PSDWindow, self).__init__(parent)
 
         # Dataset
-        self.epochs = get_epochs()
-        self.psd = EpochsPSD(self.epochs, fmin = 0, fmax = 75, tmin = 0, tmax = 0.5, method = 'welch',
-                             n_fft = 512, n_per_seg = 30, n_overlap = 15)
+        self.psd = epochsPSD
 
         # a figure instance to plot on
         self.figure = plt.figure(figsize = (10,5))
@@ -97,7 +97,9 @@ class Window(QDialog):
         f_index_min, f_index_max = -1, 0
         for freq in self.psd.freqs :
             if freq <= fmin : f_index_min += 1
-            if freq <  fmax : f_index_max += 1
+            if freq <= fmax : f_index_max += 1
+        # Just check if f_index_max is not out of bound
+        f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
 
         epoch_index = self.epochsSl.value()
         self.plot_maps(epoch_index, f_index_min, f_index_max, vmax)
@@ -131,11 +133,3 @@ class Window(QDialog):
 
         # refresh canvas
         self.canvas.draw()
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    main = Window()
-    main.show()
-
-    sys.exit(app.exec_())
