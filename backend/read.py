@@ -1,4 +1,4 @@
-è"""
+"""
 Module contenant les fonctions suivantes, destinées à lire pour MNE différents types de fichier :
 
 A tester sur plusieurs fichier ...

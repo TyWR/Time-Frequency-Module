@@ -60,44 +60,26 @@ class EpochsPSD :
         self.info            = epochs.info
         self.method          = method
 
-        self.bandwidth = kwargs.get('bandwidth', 4.)
-        self.n_fft     = kwargs.get('n_fft', 256)
-        self.n_per_seg = kwargs.get('n_per_seg', self.n_fft)
-        self.n_overlap = kwargs.get('n_overlap', 0)
-
-
         if method == 'multitaper' :
+            bandwidth = kwargs.get('bandwidth', 4.)
+
             print("Computing Mulitaper PSD with parameter bandwidth = {} on {} Epochs".format(
-                  self.bandwidth, len(self.info['chs'])))
-            self.data, self.freqs = psd_multitaper(epochs,
-                                                   fmin             = fmin,
-                                                   fmax             = fmax,
-                                                   tmin             = tmin,
-                                                   tmax             = tmax,
-                                                   normalization    = 'full',
-                                                   bandwidth        = self.bandwidth)
+                  bandwidth, len(self.info['chs'])))
+            self.data, self.freqs = psd_multitaper(epochs, fmin = fmin, fmax = fmax, tmin = tmin, tmax = tmax, bandwidth = bandwidth)
+
 
         if method == 'welch'      :
-            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs".format(
-                  self.n_fft, self.n_per_seg, self.n_overlap, len(self.info['chs'])))
-            self.data, self.freqs = psd_welch(epochs,
-                                              fmin      = fmin,
-                                              fmax      = fmax,
-                                              tmin      = tmin,
-                                              tmax      = tmax,
-                                              n_fft     = self.n_fft,
-                                              n_overlap = self.n_overlap,
-                                              n_per_seg = self.n_per_seg)
+            n_fft     = kwargs.get('n_fft', 256)
+            n_per_seg = kwargs.get('n_per_seg', n_fft)
+            n_overlap = kwargs.get('n_overlap', 0)
 
-    def __str__(self) :
-        string = "PSD Computed on {} Epochs with method {}.\nParameters : \n".format(len(self.info['chs']), self.method)
-        string = string + "fmin : {}Hz, fmax : {}Hz (with {} frequency points)\n".format(self.fmin, self.fmax, len(self.freqs))
-        string = string + "tmin : {}s, tmax : {}s\n".format(self.tmin, self.tmax)
-        if self.method == 'welch' :
-            string = string + "n_fft : {}, n_per_seg : {}, n_overlap : {}\n".format(self.n_fft, self.n_per_seg, self.n_overlap)
-        else :
-            string = string + "bandwidth : {}".format(self.bandwidth)
-        return string
+            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs".format(
+                  n_fft, n_per_seg, n_overlap, len(self.info['chs'])))
+            self.data, self.freqs = psd_welch(epochs, fmin = fmin, fmax = fmax,
+                                              tmin = tmin, tmax = tmax,
+                                              n_fft = n_fft,
+                                              n_overlap = n_overlap,
+                                              n_per_seg = n_per_seg)
 
     def plot_topomap(self, epoch_index, freq_index, axes = None) :
         """

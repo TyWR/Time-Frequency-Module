@@ -1,12 +1,9 @@
-from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QSlider, QLabel, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
-
-import sys
-sys.path.append("..")
 
 
 """
@@ -21,7 +18,7 @@ class PSDWindow(QDialog):
         self.psd = epochsPSD
 
         # a figure instance to plot on
-        self.figure = plt.figure(figsize = (10,5))
+        self.figure = plt.figure(figsize = (10,10))
         # Canvas
         self.canvas = FigureCanvas(self.figure)
         # Matplotlib toolbar
@@ -40,6 +37,9 @@ class PSDWindow(QDialog):
         self.fmax.setMaxLength(4)
         self.fmax.setText("20")
 
+        # Show single Epoch
+        self.showSingleEpoch = QCheckBox('Show Single Epoch', self)
+
         # Epochs
         self.epochsLabel = QLabel('Epoch:', self)
         self.epochsSl = QSlider(Qt.Horizontal)
@@ -52,14 +52,17 @@ class PSDWindow(QDialog):
 
         # Show mean of epochs
         self.showMean = QCheckBox('Show Average over Epochs', self)
+        self.showMean.setCheckState(2)
 
         # Value maximum of the amplitude
-        self.vminLabel = QLabel('Scaling for amplitude (µV / m²):', self)
+        self.vminLabel = QLabel('Scaling for amplitude (µV² / Hz):', self)
         self.vmin = QLineEdit()
         self.vmin.setValidator(QDoubleValidator())
         self.vmin.setMaxLength(15)
-        self.vmin.setText("1e-12")
+        self.vmin.setText("3e-12")
 
+        # Recap of the parameters
+        self.parameters = QLabel(epochsPSD.__str__())
 
         # set the layout
         layout = QVBoxLayout()
@@ -72,18 +75,22 @@ class PSDWindow(QDialog):
         layout.addWidget(self.fmaxLabel)
         layout.addWidget(self.fmax)
 
+        layout.addWidget(self.showSingleEpoch)
         layout.addWidget(self.epochsLabel)
         layout.addWidget(self.epochsSl)
         layout.addWidget(self.showMean)
 
         layout.addWidget(self.vminLabel)
         layout.addWidget(self.vmin)
+
+        layout.addWidget(self.parameters)
         self.setLayout(layout)
 
         self.epochsSl.valueChanged.connect(self.valueChange)
         self.fmin.editingFinished.connect(self.valueChange)
         self.fmax.editingFinished.connect(self.valueChange)
         self.showMean.stateChanged.connect(self.valueChange)
+        self.showSingleEpoch.stateChanged.connect(self.valueChange)
         self.vmin.editingFinished.connect(self.valueChange)
 
         self.valueChange()
@@ -98,6 +105,7 @@ class PSDWindow(QDialog):
         for freq in self.psd.freqs :
             if freq <= fmin : f_index_min += 1
             if freq <= fmax : f_index_max += 1
+
         # Just check if f_index_max is not out of bound
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
 
@@ -108,28 +116,34 @@ class PSDWindow(QDialog):
         ''' Plot the topomap'''
         fmin = self.psd.freqs[f_index_min]
         fmax = self.psd.freqs[f_index_max]
-        # instead of ax.hold(False)
+
         self.figure.clear()
         self.figure.suptitle('Frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
                      fontsize = 20, fontweight = 'bold')
 
-        nbFrames = 2 if self.showMean.checkState() else 1
+        # Plot 2 topomaps if showMean is checked, one otherwise
+        both = self.showMean.checkState() and self.showSingleEpoch.checkState()
+        nbFrames = 2 if both else 1
 
-        # plot data of the selected epoch
-        ax = self.figure.add_subplot(1, nbFrames, 1)
-        image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
-        ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
+        if self.showSingleEpoch.checkState() :
+            # plot data of the selected epoch
+            ax = self.figure.add_subplot(1, nbFrames, 1)
+            image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
 
         # plot average data if showMean is checked
         if self.showMean.checkState() :
-            ax = self.figure.add_subplot(1, nbFrames, 2)
-            self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            ax = self.figure.add_subplot(1, nbFrames, nbFrames)
+            image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
-        # plot a common colorbar for both representations
-        cax = self.figure.add_axes([0.915, 0.15, 0.01, 0.7])
-        plt.colorbar(image, cax = cax)
-        self.figure.subplots_adjust(top = 0.8, right = 0.8, left = 0.1, bottom = 0.1)
+        if self.showSingleEpoch.checkState() or self.showMean.checkState() :
+            # plot a common colorbar for both representations
+            cax = self.figure.add_axes([0.915, 0.15, 0.01, 0.7])
+            cbar = plt.colorbar(image, cax = cax)
+            cbar.ax.get_xaxis().labelpad = 15
+            cbar.ax.set_xlabel('PSD (µV²/Hz)')
+            self.figure.subplots_adjust(top = 0.8, right = 0.8, left = 0.1, bottom = 0.1)
 
         # refresh canvas
         self.canvas.draw()
