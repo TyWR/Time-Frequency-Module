@@ -5,7 +5,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
-
 """
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
@@ -71,8 +70,8 @@ class PSDWindow(QDialog):
     def set_grid_layout(self) :
         grid = QGridLayout()
 
-        grid.addWidget(self.toolbar, 1, 1, 1, 2)
-        grid.addWidget(self.canvas, 2, 1, 1, 2)
+        grid.addWidget(self.canvas, 1, 1, 1, 2)
+        grid.addWidget(self.toolbar, 2, 1, 1, 2)
 
         grid.addWidget(self.fminLabel, 3, 1, 1, 1)
         grid.addWidget(self.fmin, 4, 1, 1, 1)
@@ -148,7 +147,52 @@ class PSDWindow(QDialog):
             cbar = plt.colorbar(image, cax = cax)
             cbar.ax.get_xaxis().labelpad = 15
             cbar.ax.set_xlabel('PSD (µV²/Hz)')
-            self.figure.subplots_adjust(top = 0.8, right = 0.8, left = 0.1, bottom = 0.1)
+            self.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
 
         # refresh canvas
         self.canvas.draw()
+
+class PSDMenu(QDialog) :
+
+    def __init__(self, parent = None) :
+        super(PSDMenu, self).__init__(parent)
+
+        # method choice
+        self.methodLabel = QLabel("Method :")
+        self.checkWelch  = QCheckBox("Welch")
+        self.checkMt     = QCheckBox("Multitaper")
+        self.checkWelch.setCheckState(2)
+
+        # Frequency choice
+        self.frequencyLabel = QLabel("Frequencies : ")
+        self.fmin           = QLineEdit()
+        self.fmax           = QLineEdit()
+        self.fmin.setValidator(QDoubleValidator())
+        self.fmin.setMaxLength(15)
+        self.fmax.setValidator(QDoubleValidator())
+        self.fmax.setMaxLength(15)
+
+        # Time choice
+        self.timesLabel = QLabel("Times : ")
+        self.tmin           = QLineEdit()
+        self.tmax           = QLineEdit()
+        self.tmin.setValidator(QDoubleValidator())
+        self.tmin.setMaxLength(15)
+        self.tmax.setValidator(QDoubleValidator())
+        self.tmax.setMaxLength(15)
+
+        # Additional Parameters Which depends on the chosen method
+
+    def set_grid_layout(self) :
+        return 0
+
+    def set_bindings(self) :
+        self.checkWelch.stateChanged.connect(self.check_method)
+        self.checkMultitaper.stateChanged.connect(self.check_method)
+
+    def check_method(self) :
+        # Just be sure that both cannot be on at the same time
+        if self.checkWelch.checkState() :
+            self.checkMultitaper.setCheckState(0)
+        if self.checkMultitaper.checkState() :
+            self.checkWelch.setCheckState(0)
