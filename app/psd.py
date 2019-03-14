@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
 class PSDWindow(QDialog):
-
+    #=====================================================================
     def __init__(self, epochsPSD, parent=None):
         super(PSDWindow, self).__init__(parent)
 
@@ -67,6 +67,8 @@ class PSDWindow(QDialog):
         self.set_bindings()
         self.valueChange()
 
+    #=====================================================================
+    # Setup functions
     def set_grid_layout(self) :
         grid = QGridLayout()
 
@@ -92,6 +94,9 @@ class PSDWindow(QDialog):
         self.setLayout(grid)
 
     def set_bindings(self) :
+        """
+        Set Bindings
+        """
         self.epochsSl.valueChanged.connect(self.valueChange)
         self.fmin.editingFinished.connect(self.valueChange)
         self.fmax.editingFinished.connect(self.valueChange)
@@ -99,12 +104,22 @@ class PSDWindow(QDialog):
         self.showSingleEpoch.stateChanged.connect(self.valueChange)
         self.vmin.editingFinished.connect(self.valueChange)
 
-    def valueChange(self) :
-        fmin = int(self.fmin.text())
-        fmax = int(self.fmax.text())
-        vmax = float(self.vmin.text())
+    #=====================================================================
+    # Plotting function
+    def plot_maps(self, epoch_index, f_index_min, f_index_max, vmax):
+        """ Plot the topomaps """
+        self.figure.clear()
+        self.add_subplots(f_index_min, f_index_max, vmax)
+        self.add_colorbar([0.915, 0.15, 0.01, 0.7])
+        self.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
+        self.canvas.draw()
 
-        # Simple iteration on psd.freqs to get all the index for frequencies within this range
+    #=====================================================================
+    # Auxiliary functions for plotting
+    def get_index_freq(self, fmin, fmax) :
+        """
+        Get the indices of the freq between fmin and fmax
+        """
         f_index_min, f_index_max = -1, 0
         for freq in self.psd.freqs :
             if freq <= fmin : f_index_min += 1
@@ -112,87 +127,40 @@ class PSDWindow(QDialog):
 
         # Just check if f_index_max is not out of bound
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
+        return f_index_min, f_index_max
 
+    def valueChange(self) :
+        """ Get called if a value is change """
+        fmin = int(self.fmin.text())
+        fmax = int(self.fmax.text())
+        vmax = float(self.vmin.text())
+
+        f_index_min, f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.epochsSl.value()
         self.plot_maps(epoch_index, f_index_min, f_index_max, vmax)
 
-    def plot_maps(self, epoch_index, f_index_min, f_index_max, vmax):
-        ''' Plot the topomap'''
-        fmin = self.psd.freqs[f_index_min]
-        fmax = self.psd.freqs[f_index_max]
+    def add_subplots(self, f_index_min, f_index_max, vmax) :
+        """ Plot the good number of subplots, and return the image for the colorbar """
 
-        self.figure.clear()
-        #self.figure.suptitle('Frequency band {:.2f} to {:.2f} Hz'.format(fmin ,fmax),
-        #             fontsize = 20, fontweight = 'bold')
+        nbFrames = 2 if self.showMean.checkState() and self.showSingleEpoch.checkState() else 1
 
-        # Plot 2 topomaps if showMean is checked, one otherwise
-        both = self.showMean.checkState() and self.showSingleEpoch.checkState()
-        nbFrames = 2 if both else 1
-
+        # Plot single epoch if showSingleEpoch is checked
         if self.showSingleEpoch.checkState() :
-            # plot data of the selected epoch
             ax = self.figure.add_subplot(1, nbFrames, 1)
-            image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            self.cbar_image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
 
         # plot average data if showMean is checked
         if self.showMean.checkState() :
             ax = self.figure.add_subplot(1, nbFrames, nbFrames)
-            image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
+    def add_colorbar(self, position) :
+        """ Add colorbar to the plot at position """
         if self.showSingleEpoch.checkState() or self.showMean.checkState() :
             # plot a common colorbar for both representations
-            cax = self.figure.add_axes([0.915, 0.15, 0.01, 0.7])
-            cbar = plt.colorbar(image, cax = cax)
+            cax = self.figure.add_axes(position)
+            cbar = plt.colorbar(self.cbar_image, cax = cax)
             cbar.ax.get_xaxis().labelpad = 15
             cbar.ax.set_xlabel('PSD (µV²/Hz)')
-            self.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
-
-        # refresh canvas
-        self.canvas.draw()
-
-class PSDMenu(QDialog) :
-
-    def __init__(self, parent = None) :
-        super(PSDMenu, self).__init__(parent)
-
-        # method choice
-        self.methodLabel = QLabel("Method :")
-        self.checkWelch  = QCheckBox("Welch")
-        self.checkMt     = QCheckBox("Multitaper")
-        self.checkWelch.setCheckState(2)
-
-        # Frequency choice
-        self.frequencyLabel = QLabel("Frequencies : ")
-        self.fmin           = QLineEdit()
-        self.fmax           = QLineEdit()
-        self.fmin.setValidator(QDoubleValidator())
-        self.fmin.setMaxLength(15)
-        self.fmax.setValidator(QDoubleValidator())
-        self.fmax.setMaxLength(15)
-
-        # Time choice
-        self.timesLabel = QLabel("Times : ")
-        self.tmin           = QLineEdit()
-        self.tmax           = QLineEdit()
-        self.tmin.setValidator(QDoubleValidator())
-        self.tmin.setMaxLength(15)
-        self.tmax.setValidator(QDoubleValidator())
-        self.tmax.setMaxLength(15)
-
-        # Additional Parameters Which depends on the chosen method
-
-    def set_grid_layout(self) :
-        return 0
-
-    def set_bindings(self) :
-        self.checkWelch.stateChanged.connect(self.check_method)
-        self.checkMultitaper.stateChanged.connect(self.check_method)
-
-    def check_method(self) :
-        # Just be sure that both cannot be on at the same time
-        if self.checkWelch.checkState() :
-            self.checkMultitaper.setCheckState(0)
-        if self.checkMultitaper.checkState() :
-            self.checkWelch.setCheckState(0)

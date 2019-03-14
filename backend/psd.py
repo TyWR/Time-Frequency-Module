@@ -1,6 +1,6 @@
 """
 =================================================================================
-                                Processing
+                                    psd
 
 This file contains several functions to compute PSD on epochs. It creates a instance
 of a class called EpochsDSP. EpochsDSP enable to handle all the psds data from all the
@@ -94,7 +94,8 @@ class EpochsPSD :
         string = string + "fmin : {}Hz, fmax : {}Hz (with {} frequency points)\n".format(self.fmin, self.fmax, len(self.freqs))
         string = string + "tmin : {}s, tmax : {}s\n".format(self.tmin, self.tmax)
         if self.method == 'welch' :
-            string = string + "n_fft : {}, n_per_seg : {}, n_overlap : {}\n".format(self.n_fft, self.n_per_seg, self.n_overlap)
+            string = string + "n_fft : {}, n_per_seg : {}, n_overlap : {}\n".format(
+                self.n_fft, self.n_per_seg, self.n_overlap)
         else :
             string = string + "bandwidth : {}".format(self.bandwidth)
         return string
