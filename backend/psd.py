@@ -37,7 +37,7 @@ class EpochsPSD :
     plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
     plot_avg_matrix             : Plot the raw matrix
     plot_avg                    : Plot the matrix for a given epoch
-    plot_single_psd
+    plot_single_psd             : Plot the PSD for a given epoch and channel
     """
 
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
@@ -232,3 +232,13 @@ class EpochsPSD :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
         else :
             return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+
+    def plot_single_psd(self, epoch_index, channel_index, freq_index_min, freq_index_max, axes = None) :
+        """
+        Plot a single PSD.
+        """
+        psd = self.data[epoch_index, channel_index, freq_index_min : freq_index_max]
+        if axes is not None :
+            return axes.plot(psd, self.freqs[freq_index_min : freq_index_max])
+        else :
+            return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
