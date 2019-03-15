@@ -35,6 +35,9 @@ class EpochsPSD :
     plot_topomap                : Plot the map of the power for a given frequency and epoch
     plot_topomap_band           : Plot the map of the power for a given band frequency and epoch
     plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
+    plot_avg_matrix             : Plot the raw matrix
+    plot_avg                    : Plot the matrix for a given epoch
+    plot_single_psd
     """
 
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
@@ -175,7 +178,7 @@ class EpochsPSD :
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
         return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
 
-    def plot_psd_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+    def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
@@ -197,4 +200,35 @@ class EpochsPSD :
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], 1, self.info['nchan']]
         mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
-        return plt.matshow(mat, extent = extent, cmap = 'GnBu')
+        if axes is not None :
+            return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+        else :
+            return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+
+    def plot_matrix(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+        """
+        Plot the map of the average power for a given frequency band chosen by freq_index_min and
+        freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
+        return an error if the class is not initialized with the coordinates of the different
+        electrodes.
+
+        Arguments :
+        ============
+        epoch_index
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+        axes
+        vmin
+        vmax
+
+
+        Returns :
+        ============
+        Instance of Matplotlib.Image
+        """
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], 1, self.info['nchan']]
+        mat = self.data[epoch_index, :, freq_index_min : freq_index_max]
+        if axes is not None :
+            return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+        else :
+            return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)

@@ -29,7 +29,6 @@ class Ui_PSDWindow(object):
         self.selectPlotType.setGeometry(QtCore.QRect(310, 600, 1001, 25))
         self.selectPlotType.setObjectName("selectPlotType")
         self.selectPlotType.addItem("PSD Matrix")
-        self.selectPlotType.addItem("Single PSD")
         self.selectPlotType.addItem("Topomap")
 
 
@@ -46,16 +45,16 @@ class Ui_PSDWindow(object):
         self.fmin = QtWidgets.QLineEdit(Dialog)
         self.fmin.setGeometry(QtCore.QRect(310, 670, 121, 25))
         self.fmin.setObjectName("fmin")
-        self.fmin.setValidator(QtGui.QIntValidator())
+        self.fmin.setValidator(QtGui.QDoubleValidator())
         self.fmin.setMaxLength(4)
-        self.fmin.setText("10")
+
 
         self.fmax = QtWidgets.QLineEdit(Dialog)
         self.fmax.setGeometry(QtCore.QRect(450, 670, 121, 25))
         self.fmax.setObjectName("fmax")
-        self.fmax.setValidator(QtGui.QIntValidator())
+        self.fmax.setValidator(QtGui.QDoubleValidator())
         self.fmax.setMaxLength(4)
-        self.fmax.setText("20")
+
 
         self.vmaxLabel = QtWidgets.QLabel(Dialog)
         self.vmaxLabel.setGeometry(QtCore.QRect(10, 710, 261, 51))

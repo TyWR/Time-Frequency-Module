@@ -19,7 +19,7 @@ class PSDWindow(QDialog):
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
         self.set_canvas()
-        self.ui.epochsSlider.setMaximum(self.psd.data.shape[0] - 1)
+        self.set_initial_values()
         self.set_bindings()
         self.plotChange()
 
@@ -27,6 +27,11 @@ class PSDWindow(QDialog):
 
     #=====================================================================
     # Setup functions
+    def set_initial_values(self) :
+        self.ui.epochsSlider.setMaximum(self.psd.data.shape[0] - 1)
+        self.ui.fmin.setText(str(self.psd.freqs[0]))
+        self.ui.fmax.setText(str(self.psd.freqs[-1]))
+
     def set_bindings(self) :
         """
         Set Bindings
@@ -52,9 +57,7 @@ class PSDWindow(QDialog):
         if self.plotType == "Topomap" :
             self.plot_topomaps(epoch_index, f_index_min, f_index_max, vmax)
         if self.plotType == "PSD Matrix" :
-            self.plot_psd_matrix(f_index_min, f_index_max, vmax)
-        if self.plotType == "Single PSD" :
-            self.plot_single_psd(epoch_index, f_index_min, f_index_max)
+            self.plot_matrix(epoch_index, f_index_min, f_index_max, vmax)
 
     def plot_topomaps(self, epoch_index, f_index_min, f_index_max, vmax):
         """ Plot the topomaps """
@@ -64,11 +67,11 @@ class PSDWindow(QDialog):
         self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
-    def plot_psd_matrix(f_index_min, f_index_max, vmax) :
+    def plot_matrix(self, epoch_index, f_index_min, f_index_max, vmax) :
         self.ui.figure.clear()
-        self.matrix_adjust(f_index_min, f_index_max, vmax)
+        self.matrix_adjust(epoch_index, f_index_min, f_index_max, vmax)
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
-        self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
     def plot_singe_psd(epoch_index, f_index_min, f_index_max) :
@@ -94,9 +97,9 @@ class PSDWindow(QDialog):
         self.valueChange()
 
     def valueChange(self) :
-        """ Get called if a value is change """
-        fmin = int(self.ui.fmin.text())
-        fmax = int(self.ui.fmax.text())
+        """ Get called if a value is changed """
+        fmin = float(self.ui.fmin.text())
+        fmax = float(self.ui.fmax.text())
         vmax = float(self.ui.vmax.text())
 
         f_index_min, f_index_max = self.get_index_freq(fmin ,fmax)
@@ -120,10 +123,29 @@ class PSDWindow(QDialog):
             self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
-    def matrix_adjust(f_index_min, f_index_max, vmax) :
+    def matrix_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the matrix and update cbar_image instance """
-        ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image = self.psd.plot_psd_matrix()
+        nbFrames = 2 if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() else 1
+
+        # plot single epoch data uf showSingleEpoch is checked
+        if self.ui.showSingleEpoch.checkState() :
+            ax = self.ui.figure.add_subplot(1, nbFrames, 1)
+            self.cbar_image = self.psd.plot_matrix(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            ax.axis('tight')
+            ax.set_title("PSD Matrix for epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
+            ax.set_xlabel('Frequencies (Hz)')
+            ax.set_ylabel('Channels')
+            ax.xaxis.set_ticks_position('bottom')
+
+        # plot average data if showMean is checked
+        if self.ui.showMean.checkState() :
+            ax = self.ui.figure.add_subplot(1, nbFrames, nbFrames)
+            self.cbar_image = self.psd.plot_avg_matrix(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+            ax.axis('tight')
+            ax.set_title("Average PSD Matrix", fontsize = 15, fontweight = 'light')
+            ax.set_xlabel('Frequencies (Hz)')
+            ax.set_ylabel('Channels')
+            ax.xaxis.set_ticks_position('bottom')
 
     def add_colorbar(self, position) :
         """ Add colorbar to the plot at position """
