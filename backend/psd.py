@@ -198,7 +198,7 @@ class EpochsPSD :
         ============
         Instance of Matplotlib.Image
         """
-        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], 1, self.info['nchan']]
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.info['nchan'], 1]
         mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
         if axes is not None :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
@@ -226,7 +226,7 @@ class EpochsPSD :
         ============
         Instance of Matplotlib.Image
         """
-        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], 1, self.info['nchan']]
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.info['nchan'], 1]
         mat = self.data[epoch_index, :, freq_index_min : freq_index_max]
         if axes is not None :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
@@ -239,6 +239,16 @@ class EpochsPSD :
         """
         psd = self.data[epoch_index, channel_index, freq_index_min : freq_index_max]
         if axes is not None :
-            return axes.plot(psd, self.freqs[freq_index_min : freq_index_max])
+            return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
+        else :
+            return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
+
+    def plot_single_avg_psd(self, channel_index, freq_index_min, freq_index_max, axes = None) :
+        """
+        Plot a single averaged PSD.
+        """
+        psd = mean(self.data[:, channel_index, freq_index_min : freq_index_max], axis = 0)
+        if axes is not None :
+            return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)

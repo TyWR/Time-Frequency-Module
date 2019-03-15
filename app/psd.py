@@ -4,6 +4,7 @@ from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
+from math import floor
 
 from app.psd_UI import Ui_PSDWindow
 
@@ -105,11 +106,11 @@ class PSDWindow(QDialog):
         """ Get called if a value is changed """
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
-        vmax = float(self.ui.vmax.text())
 
-        f_index_min, f_index_max = self.get_index_freq(fmin ,fmax)
+        self.vmax = float(self.ui.vmax.text())
+        self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.ui.epochsSlider.value()
-        self.plot_psd(epoch_index, f_index_min, f_index_max, vmax)
+        self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)
 
     def topomaps_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the good number of subplots and update cbar_image instance"""
@@ -163,4 +164,39 @@ class PSDWindow(QDialog):
 
     def __onclick__(self, click) :
         """Get coordinates on the canvas and plot the corresponding PSD"""
-        self.cursor = (click.xdata, click.ydata)
+        channel_picked = click.ydata
+        ax_picked = click.inaxes
+
+        if channel_picked is not None and self.plotType == "PSD Matrix" :
+            channel_picked = floor(channel_picked)
+            epoch_picked = self.ui.epochsSlider.value()
+            if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() :
+                # If both are checked, it depends on which plot user clicked
+                if ax_picked.is_first_col() : self.plot_single_psd(epoch_picked, channel_picked)
+                else : self.plot_single_avg_psd(channel_picked)
+
+            elif self.ui.showSingleEpoch.checkState() :
+                self.plot_single_psd(epoch_picked, channel_picked)
+            elif self.ui.showMean.checkState() :
+                self.plot_single_avg_psd(channel_picked)
+
+    def plot_single_psd(self, epoch_picked, channel_picked) :
+        plt.close()
+        fig = plt.figure(figsize = (5, 5))
+        ax = fig.add_subplot(1, 1, 1)
+        self.psd.plot_single_psd(epoch_picked, channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
+        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, channel_picked))
+        self.set_ax_single_psd(ax)
+
+    def plot_single_avg_psd(self, channel_picked) :
+        plt.close()
+        fig = plt.figure(figsize = (5, 5))
+        ax = fig.add_subplot(1, 1, 1)
+        self.psd.plot_single_avg_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
+        ax.set_title('Average PSD of channel {}'.format(channel_picked))
+        self.set_ax_single_psd(ax)
+
+    def set_ax_single_psd(self, ax) :
+        ax.set_ylim([0, self.vmax])
+        ax.set_xlim([self.psd.freqs[self.f_index_min], self.psd.freqs[self.f_index_max]])
+        plt.show()
