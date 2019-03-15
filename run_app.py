@@ -16,7 +16,4 @@ if __name__ == '__main__':
 
     main = PSDWindow(epochsPSD)
     main.show()
-
-    #main = ImportDataWindow()
-    #main.show()
     sys.exit(app.exec_())

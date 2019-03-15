@@ -11,7 +11,6 @@ from app.psd_UI import Ui_PSDWindow
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
 class PSDWindow(QDialog):
-    #=====================================================================
     def __init__(self, epochsPSD, parent=None):
         super(PSDWindow, self).__init__(parent)
         self.psd = epochsPSD
@@ -21,28 +20,34 @@ class PSDWindow(QDialog):
         self.set_canvas()
         self.set_initial_values()
         self.set_bindings()
-        self.plotChange()
-
-
+        self.plot_change()
 
     #=====================================================================
     # Setup functions
     def set_initial_values(self) :
+        """ Setup initial values """
         self.ui.epochsSlider.setMaximum(self.psd.data.shape[0] - 1)
+        self.ui.epochsSlider.setMinimum(0)
+        self.ui.epochsSlider.setValue(0)
+        self.ui.epochsSlider.setTickInterval(1)
         self.ui.fmin.setText(str(self.psd.freqs[0]))
         self.ui.fmax.setText(str(self.psd.freqs[-1]))
+        self.ui.vmax.setText("3e-12")
+        self.ui.showMean.setCheckState(2)
+        self.ui.selectPlotType.addItem("PSD Matrix")
+        self.ui.selectPlotType.addItem("Topomap")
 
     def set_bindings(self) :
         """
         Set Bindings
         """
-        self.ui.epochsSlider.valueChanged.connect(self.valueChange)
-        self.ui.fmin.editingFinished.connect(self.valueChange)
-        self.ui.fmax.editingFinished.connect(self.valueChange)
-        self.ui.showMean.stateChanged.connect(self.valueChange)
-        self.ui.showSingleEpoch.stateChanged.connect(self.valueChange)
-        self.ui.vmax.editingFinished.connect(self.valueChange)
-        self.ui.selectPlotType.currentIndexChanged.connect(self.plotChange)
+        self.ui.epochsSlider.valueChanged.connect(self.value_change)
+        self.ui.fmin.editingFinished.connect(self.value_change)
+        self.ui.fmax.editingFinished.connect(self.value_change)
+        self.ui.showMean.stateChanged.connect(self.value_change)
+        self.ui.showSingleEpoch.stateChanged.connect(self.value_change)
+        self.ui.vmax.editingFinished.connect(self.value_change)
+        self.ui.selectPlotType.currentIndexChanged.connect(self.plot_change)
 
     def set_canvas(self) :
         self.ui.figure = plt.figure(figsize = (10,10))
@@ -91,12 +96,12 @@ class PSDWindow(QDialog):
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
         return f_index_min, f_index_max
 
-    def plotChange(self) :
+    def plot_change(self) :
         """ Update the plot type """
         self.plotType = self.ui.selectPlotType.currentText()
-        self.valueChange()
+        self.value_change()
 
-    def valueChange(self) :
+    def value_change(self) :
         """ Get called if a value is changed """
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
