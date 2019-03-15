@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 
 class ImportDataWindow(QDialog) :
 
+    #---------------------------------------------------------------------
     def __init__(self, parent=None):
         super(ImportDataWindow, self).__init__(parent)
 
@@ -16,5 +17,6 @@ class ImportDataWindow(QDialog) :
         layout.addWidget(self.pickPathButton)
         self.setLayout(layout)
 
+    #---------------------------------------------------------------------
     def pick_path(self) :
          self.fname = QFileDialog().getOpenFileName(self, 'Open file', 'c:\\', "EEG File (*sef)")

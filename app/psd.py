@@ -38,6 +38,7 @@ class PSDWindow(QDialog):
         self.ui.selectPlotType.addItem("PSD Matrix")
         self.ui.selectPlotType.addItem("Topomap")
 
+    #---------------------------------------------------------------------
     def set_bindings(self) :
         """Set Bindings"""
         self.ui.epochsSlider.valueChanged.connect(self.value_change)
@@ -48,6 +49,7 @@ class PSDWindow(QDialog):
         self.ui.vmax.editingFinished.connect(self.value_change)
         self.ui.selectPlotType.currentIndexChanged.connect(self.plot_change)
 
+    #---------------------------------------------------------------------
     def set_canvas(self) :
         """setup canvas for matplotlib"""
         self.ui.figure = plt.figure(figsize = (10,10))
@@ -68,6 +70,7 @@ class PSDWindow(QDialog):
         if self.plotType == "PSD Matrix" :
             self.plot_matrix(epoch_index, f_index_min, f_index_max, vmax)
 
+    #---------------------------------------------------------------------
     def plot_topomaps(self, epoch_index, f_index_min, f_index_max, vmax):
         """Plot the topomaps"""
         self.ui.figure.clear()
@@ -76,6 +79,7 @@ class PSDWindow(QDialog):
         self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
+    #---------------------------------------------------------------------
     def plot_matrix(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the PSD Matrix"""
         self.ui.figure.clear()
@@ -97,11 +101,13 @@ class PSDWindow(QDialog):
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
         return f_index_min, f_index_max
 
+    #---------------------------------------------------------------------
     def plot_change(self) :
         """Update the plot type"""
         self.plotType = self.ui.selectPlotType.currentText()
         self.value_change()
 
+    #---------------------------------------------------------------------
     def value_change(self) :
         """ Get called if a value is changed """
         fmin = float(self.ui.fmin.text())
@@ -112,6 +118,7 @@ class PSDWindow(QDialog):
         epoch_index = self.ui.epochsSlider.value()
         self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)
 
+    #---------------------------------------------------------------------
     def topomaps_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the good number of subplots and update cbar_image instance"""
 
@@ -129,6 +136,7 @@ class PSDWindow(QDialog):
             self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
+    #---------------------------------------------------------------------
     def matrix_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the matrix and update cbar_image instance """
         nbFrames = 2 if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() else 1
@@ -153,6 +161,7 @@ class PSDWindow(QDialog):
             ax.set_ylabel('Channels')
             ax.xaxis.set_ticks_position('bottom')
 
+    #---------------------------------------------------------------------
     def add_colorbar(self, position) :
         """ Add colorbar to the plot at correct position """
         if self.ui.showSingleEpoch.checkState() or self.ui.showMean.checkState() :
@@ -162,6 +171,7 @@ class PSDWindow(QDialog):
             cbar.ax.get_xaxis().labelpad = 15
             cbar.ax.set_xlabel('PSD (µV²/Hz)')
 
+    #---------------------------------------------------------------------
     def __onclick__(self, click) :
         """Get coordinates on the canvas and plot the corresponding PSD"""
         channel_picked = click.ydata
@@ -170,17 +180,21 @@ class PSDWindow(QDialog):
         if channel_picked is not None and self.plotType == "PSD Matrix" :
             channel_picked = floor(channel_picked)
             epoch_picked = self.ui.epochsSlider.value()
+
+            # If both are checked, it depends on which plot user clicked
             if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() :
-                # If both are checked, it depends on which plot user clicked
                 if ax_picked.is_first_col() : self.plot_single_psd(epoch_picked, channel_picked)
                 else : self.plot_single_avg_psd(channel_picked)
 
             elif self.ui.showSingleEpoch.checkState() :
                 self.plot_single_psd(epoch_picked, channel_picked)
+
             elif self.ui.showMean.checkState() :
                 self.plot_single_avg_psd(channel_picked)
 
+    #---------------------------------------------------------------------
     def plot_single_psd(self, epoch_picked, channel_picked) :
+        """Plot one single PSD"""
         plt.close()
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
@@ -188,7 +202,9 @@ class PSDWindow(QDialog):
         ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, channel_picked))
         self.set_ax_single_psd(ax)
 
+    #---------------------------------------------------------------------
     def plot_single_avg_psd(self, channel_picked) :
+        """Plot one single averaged PSD"""
         plt.close()
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
@@ -196,7 +212,9 @@ class PSDWindow(QDialog):
         ax.set_title('Average PSD of channel {}'.format(channel_picked))
         self.set_ax_single_psd(ax)
 
+    #---------------------------------------------------------------------
     def set_ax_single_psd(self, ax) :
+        """Set axes values for a single PSD plot"""
         ax.set_ylim([0, self.vmax])
         ax.set_xlim([self.psd.freqs[self.f_index_min], self.psd.freqs[self.f_index_max]])
         plt.show()

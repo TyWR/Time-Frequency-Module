@@ -38,8 +38,10 @@ class EpochsPSD :
     plot_avg_matrix             : Plot the raw matrix
     plot_avg                    : Plot the matrix for a given epoch
     plot_single_psd             : Plot the PSD for a given epoch and channel
+    plot_single_avg_psd         : Plot the PSD averaged over epochs for a given chanel
     """
 
+    #--------------------------------------------------------------------------------------------------------
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
         """
         Computes the PSD of the epochs with the correct method multitaper or welch.
@@ -92,6 +94,7 @@ class EpochsPSD :
                                               n_overlap = self.n_overlap,
                                               n_per_seg = self.n_per_seg)
 
+    #--------------------------------------------------------------------------------------------------------
     def __str__(self) :
         string = "PSD Computed on {} Epochs with method {}.\nParameters : \n".format(len(self.info['chs']), self.method)
         string = string + "fmin : {}Hz, fmax : {}Hz (with {} frequency points)\n".format(self.fmin, self.fmax, len(self.freqs))
@@ -103,6 +106,7 @@ class EpochsPSD :
             string = string + "bandwidth : {}".format(self.bandwidth)
         return string
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_topomap(self, epoch_index, freq_index, axes = None) :
         """
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
@@ -113,6 +117,7 @@ class EpochsPSD :
         ============
         epoch_index (int)           : index of the epoch in epochs
         freq_index  (int)           : index of the frequency in self.freqs
+        axes           (axe)        : Instance of matplotlib Axes
 
         Returns :
         ============
@@ -125,6 +130,7 @@ class EpochsPSD :
         psd_values = self.data[epoch_index, :, freq_index]
         return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = 'GnBu')
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
@@ -136,9 +142,9 @@ class EpochsPSD :
         epoch_index    (int)        : index of the epoch in epochs
         freq_index_max (int)        : index of the min frequency in self.freqs
         freq_index_min (int)        : index of the max frequency in self.freqs
-        axes
-        vmin
-        vmax
+        axes           (axe)        : Instance of matplotlib Axes
+        vmin           (float)      : Maximum value of power to display
+        vmax           (float)      : Minimum value of power to display
 
         Returns :
         ============
@@ -152,6 +158,7 @@ class EpochsPSD :
         psd_mean = mean(psd_values, axis = 1)
         return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
@@ -163,6 +170,9 @@ class EpochsPSD :
         ============
         freq_index_max (int)        : index of the min frequency in self.freqs
         freq_index_min (int)        : index of the max frequency in self.freqs
+        axes           (axe)        : Instance of matplotlib Axes
+        vmin           (float)      : Maximum value of power to display
+        vmax           (float)      : Minimum value of power to display
 
 
         Returns :
@@ -178,6 +188,7 @@ class EpochsPSD :
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
         return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
@@ -189,9 +200,9 @@ class EpochsPSD :
         ============
         freq_index_max (int)        : index of the min frequency in self.freqs
         freq_index_min (int)        : index of the max frequency in self.freqs
-        axes
-        vmin
-        vmax
+        axes           (axe)        : Instance of matplotlib Axes
+        vmin           (float)      : Maximum value of power to display
+        vmax           (float)      : Minimum value of power to display
 
 
         Returns :
@@ -205,6 +216,7 @@ class EpochsPSD :
         else :
             return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_matrix(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
@@ -214,13 +226,12 @@ class EpochsPSD :
 
         Arguments :
         ============
-        epoch_index
+        epoch_index    (int)        : index if the epoch to display
         freq_index_max (int)        : index of the min frequency in self.freqs
         freq_index_min (int)        : index of the max frequency in self.freqs
-        axes
-        vmin
-        vmax
-
+        axes           (axe)        : Instance of matplotlib Axes
+        vmin           (float)      : Maximum value of power to display
+        vmax           (float)      : Minimum value of power to display
 
         Returns :
         ============
@@ -233,9 +244,23 @@ class EpochsPSD :
         else :
             return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_single_psd(self, epoch_index, channel_index, freq_index_min, freq_index_max, axes = None) :
         """
-        Plot a single PSD.
+        Plot a single PSD corresponding to epoch_index and channel_index, between the values
+        corresponding to freq_index_max and freq_index_min.
+
+        Arguments :
+        ============
+        epoch_index    (int)        : index if the epoch to display
+        channel_index  (int)        : index of the channel to display
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+        axes           (axe)        : Instance of matplotlib Axes
+
+        Returns :
+        ============
+        Instance of Matplotlib.Image
         """
         psd = self.data[epoch_index, channel_index, freq_index_min : freq_index_max]
         if axes is not None :
@@ -243,9 +268,22 @@ class EpochsPSD :
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
 
+    #--------------------------------------------------------------------------------------------------------
     def plot_single_avg_psd(self, channel_index, freq_index_min, freq_index_max, axes = None) :
         """
-        Plot a single averaged PSD.
+        Plot a single PSD averaged over epochs and corresponding to channel_index, between
+        the values corresponding to freq_index_max and freq_index_min.
+
+        Arguments :
+        ============
+        channel_index  (int)        : index of the channel to display
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+        axes           (axe)        : Instance of matplotlib Axes
+
+        Returns :
+        ============
+        Instance of Matplotlib.Image
         """
         psd = mean(self.data[:, channel_index, freq_index_min : freq_index_max], axis = 0)
         if axes is not None :

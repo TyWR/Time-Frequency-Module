@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PSDWindow(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(741, 490)
+        Dialog.resize(1280, 720)
         Dialog.setMinimumSize(QtCore.QSize(400, 300))
         Dialog.setMaximumSize(QtCore.QSize(1080, 1720))
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Dialog)
@@ -63,9 +63,11 @@ class Ui_PSDWindow(object):
         self.horizontalLayout_2.addWidget(self.frequencyLabel)
         self.fmin = QtWidgets.QLineEdit(Dialog)
         self.fmin.setObjectName("fmin")
+        self.fmin.setMaxLength(4)
         self.horizontalLayout_2.addWidget(self.fmin)
         self.fmax = QtWidgets.QLineEdit(Dialog)
         self.fmax.setObjectName("fmax")
+        self.fmax.setMaxLength(4)
         self.horizontalLayout_2.addWidget(self.fmax)
         self.horizontalLayout_2.setStretch(0, 2)
         self.horizontalLayout_2.setStretch(1, 1)
