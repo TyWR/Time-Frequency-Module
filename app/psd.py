@@ -5,6 +5,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
+from app.psd_UI import Ui_PSDWindow
+
 """
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
@@ -12,108 +14,65 @@ class PSDWindow(QDialog):
     #=====================================================================
     def __init__(self, epochsPSD, parent=None):
         super(PSDWindow, self).__init__(parent)
-
-        # Dataset
         self.psd = epochsPSD
-
-        # a figure instance to plot on
-        self.figure = plt.figure(figsize = (10,10))
-        # Canvas
-        self.canvas = FigureCanvas(self.figure)
-        # Matplotlib toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self)
-
-        # Frequency lines
-        self.fminLabel = QLabel('Min Frequency (Hz):', self)
-        self.fmin = QLineEdit()
-        self.fmin.setValidator(QIntValidator())
-        self.fmin.setMaxLength(4)
-        self.fmin.setText("10")
-
-        self.fmaxLabel = QLabel('Max Frequency (Hz):', self)
-        self.fmax = QLineEdit()
-        self.fmax.setValidator(QIntValidator())
-        self.fmax.setMaxLength(4)
-        self.fmax.setText("20")
-
-        # Show single Epoch
-        self.showSingleEpoch = QCheckBox('Show Single Epoch', self)
-
-        # Epochs
-        self.epochsLabel = QLabel('Epoch:', self)
-        self.epochsSl = QSlider(Qt.Horizontal)
-        self.epochsSl.setFocusPolicy(Qt.StrongFocus)
-        self.epochsSl.setTickPosition(QSlider.TicksBelow)
-        self.epochsSl.setMaximum(self.psd.data.shape[0] - 1)
-        self.epochsSl.setMinimum(0)
-        self.epochsSl.setValue(0)
-        self.epochsSl.setTickInterval(1)
-
-        # Show mean of epochs
-        self.showMean = QCheckBox('Show Average over Epochs', self)
-        self.showMean.setCheckState(2)
-
-        # Value maximum of the amplitude
-        self.vminLabel = QLabel('Scaling for amplitude (µV² / Hz):', self)
-        self.vmin = QLineEdit()
-        self.vmin.setValidator(QDoubleValidator())
-        self.vmin.setMaxLength(15)
-        self.vmin.setText("3e-12")
-
-        # Recap of the parameters
-        self.parameters = QLabel(epochsPSD.__str__())
-
-        self.set_grid_layout()
+        self.ui = Ui_PSDWindow()
+        self.ui.setupUi(self)
+        self.ui.retranslateUi(self)
+        self.set_canvas()
+        self.ui.epochsSlider.setMaximum(self.psd.data.shape[0] - 1)
         self.set_bindings()
-        self.valueChange()
+        self.plotChange()
+
+
 
     #=====================================================================
     # Setup functions
-    def set_grid_layout(self) :
-        grid = QGridLayout()
-
-        grid.addWidget(self.canvas, 1, 1, 1, 2)
-        grid.addWidget(self.toolbar, 2, 1, 1, 2)
-
-        grid.addWidget(self.fminLabel, 3, 1, 1, 1)
-        grid.addWidget(self.fmin, 4, 1, 1, 1)
-
-        grid.addWidget(self.fmaxLabel, 3, 2, 1, 1)
-        grid.addWidget(self.fmax, 4, 2, 1, 1)
-
-        grid.addWidget(self.showSingleEpoch, 5, 1, 1, 1)
-        grid.addWidget(self.showMean, 5, 2, 1, 1)
-        grid.addWidget(self.epochsLabel, 6, 1, 1, 1)
-        grid.addWidget(self.epochsSl, 7, 1, 1, 2)
-
-        grid.addWidget(self.vminLabel, 8, 1, 1, 1)
-        grid.addWidget(self.vmin, 9, 1, 1, 1)
-
-        grid.addWidget(self.parameters, 10, 1, 1, 2)
-
-        self.setLayout(grid)
-
     def set_bindings(self) :
         """
         Set Bindings
         """
-        self.epochsSl.valueChanged.connect(self.valueChange)
-        self.fmin.editingFinished.connect(self.valueChange)
-        self.fmax.editingFinished.connect(self.valueChange)
-        self.showMean.stateChanged.connect(self.valueChange)
-        self.showSingleEpoch.stateChanged.connect(self.valueChange)
-        self.vmin.editingFinished.connect(self.valueChange)
+        self.ui.epochsSlider.valueChanged.connect(self.valueChange)
+        self.ui.fmin.editingFinished.connect(self.valueChange)
+        self.ui.fmax.editingFinished.connect(self.valueChange)
+        self.ui.showMean.stateChanged.connect(self.valueChange)
+        self.ui.showSingleEpoch.stateChanged.connect(self.valueChange)
+        self.ui.vmax.editingFinished.connect(self.valueChange)
+        self.ui.selectPlotType.currentIndexChanged.connect(self.plotChange)
 
+    def set_canvas(self) :
+        self.ui.figure = plt.figure(figsize = (10,10))
+        self.ui.canvas = FigureCanvas(self.ui.figure)
+        # Matplotlib toolbar
+        self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
+        self.ui.figureLayout.addWidget(self.ui.canvas)
+        self.ui.figureLayout.addWidget(self.ui.toolbar)
     #=====================================================================
     # Plotting function
-    def plot_maps(self, epoch_index, f_index_min, f_index_max, vmax):
-        """ Plot the topomaps """
-        self.figure.clear()
-        self.add_subplots(f_index_min, f_index_max, vmax)
-        self.add_colorbar([0.915, 0.15, 0.01, 0.7])
-        self.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
-        self.canvas.draw()
+    def plot_psd(self, epoch_index, f_index_min, f_index_max, vmax) :
+        if self.plotType == "Topomap" :
+            self.plot_topomaps(epoch_index, f_index_min, f_index_max, vmax)
+        if self.plotType == "PSD Matrix" :
+            self.plot_psd_matrix(f_index_min, f_index_max, vmax)
+        if self.plotType == "Single PSD" :
+            self.plot_single_psd(epoch_index, f_index_min, f_index_max)
 
+    def plot_topomaps(self, epoch_index, f_index_min, f_index_max, vmax):
+        """ Plot the topomaps """
+        self.ui.figure.clear()
+        self.topomaps_adjust(epoch_index, f_index_min, f_index_max, vmax)
+        self.add_colorbar([0.915, 0.15, 0.01, 0.7])
+        self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.canvas.draw()
+
+    def plot_psd_matrix(f_index_min, f_index_max, vmax) :
+        self.ui.figure.clear()
+        self.matrix_adjust(f_index_min, f_index_max, vmax)
+        self.add_colorbar([0.915, 0.15, 0.01, 0.7])
+        self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.canvas.draw()
+
+    def plot_singe_psd(epoch_index, f_index_min, f_index_max) :
+        return 0
     #=====================================================================
     # Auxiliary functions for plotting
     def get_index_freq(self, fmin, fmax) :
@@ -129,38 +88,48 @@ class PSDWindow(QDialog):
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
         return f_index_min, f_index_max
 
+    def plotChange(self) :
+        """ Update the plot type """
+        self.plotType = self.ui.selectPlotType.currentText()
+        self.valueChange()
+
     def valueChange(self) :
         """ Get called if a value is change """
-        fmin = int(self.fmin.text())
-        fmax = int(self.fmax.text())
-        vmax = float(self.vmin.text())
+        fmin = int(self.ui.fmin.text())
+        fmax = int(self.ui.fmax.text())
+        vmax = float(self.ui.vmax.text())
 
         f_index_min, f_index_max = self.get_index_freq(fmin ,fmax)
-        epoch_index = self.epochsSl.value()
-        self.plot_maps(epoch_index, f_index_min, f_index_max, vmax)
+        epoch_index = self.ui.epochsSlider.value()
+        self.plot_psd(epoch_index, f_index_min, f_index_max, vmax)
 
-    def add_subplots(self, f_index_min, f_index_max, vmax) :
-        """ Plot the good number of subplots, and return the image for the colorbar """
+    def topomaps_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
+        """ Plot the good number of subplots and update cbar_image instance"""
 
-        nbFrames = 2 if self.showMean.checkState() and self.showSingleEpoch.checkState() else 1
+        nbFrames = 2 if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() else 1
 
         # Plot single epoch if showSingleEpoch is checked
-        if self.showSingleEpoch.checkState() :
-            ax = self.figure.add_subplot(1, nbFrames, 1)
+        if self.ui.showSingleEpoch.checkState() :
+            ax = self.ui.figure.add_subplot(1, nbFrames, 1)
             self.cbar_image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
 
         # plot average data if showMean is checked
-        if self.showMean.checkState() :
-            ax = self.figure.add_subplot(1, nbFrames, nbFrames)
+        if self.ui.showMean.checkState() :
+            ax = self.ui.figure.add_subplot(1, nbFrames, nbFrames)
             self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
+    def matrix_adjust(f_index_min, f_index_max, vmax) :
+        """Plot the matrix and update cbar_image instance """
+        ax = self.ui.figure.add_subplot(1, 1, 1)
+        self.cbar_image = self.psd.plot_psd_matrix()
+
     def add_colorbar(self, position) :
         """ Add colorbar to the plot at position """
-        if self.showSingleEpoch.checkState() or self.showMean.checkState() :
+        if self.ui.showSingleEpoch.checkState() or self.ui.showMean.checkState() :
             # plot a common colorbar for both representations
-            cax = self.figure.add_axes(position)
+            cax = self.ui.figure.add_axes(position)
             cbar = plt.colorbar(self.cbar_image, cax = cax)
             cbar.ax.get_xaxis().labelpad = 15
             cbar.ax.set_xlabel('PSD (µV²/Hz)')

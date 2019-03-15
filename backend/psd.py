@@ -26,7 +26,7 @@ class EpochsPSD :
     tmax        (float)         : higher time bound for each epoch
     info        (mne Infos)     : info of the epochs
     method      (str)           : method used for PSD (multitaper or welch)
-    data        (numpy arr.)    : dataset with all the psds data
+    data        (numpy arr.)    : dataset with all the psds data (n_epochs, n_channels, n_freqs)
     freqs       (arr.)          : list containing the frequencies of the psds
 
     Methods :
@@ -120,7 +120,7 @@ class EpochsPSD :
             raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index]
-        return plot_topomap(psd_values, self.info, axes = axes, show = False)
+        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = 'GnBu')
 
     def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -147,7 +147,7 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
 
     def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
         """
@@ -173,4 +173,28 @@ class EpochsPSD :
         psd_values = self.data[:, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
+
+    def plot_psd_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+        """
+        Plot the map of the average power for a given frequency band chosen by freq_index_min and
+        freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
+        return an error if the class is not initialized with the coordinates of the different
+        electrodes.
+
+        Arguments :
+        ============
+        freq_index_max (int)        : index of the min frequency in self.freqs
+        freq_index_min (int)        : index of the max frequency in self.freqs
+        axes
+        vmin
+        vmax
+
+
+        Returns :
+        ============
+        Instance of Matplotlib.Image
+        """
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], 1, self.info['nchan']]
+        mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
+        return plt.matshow(mat, extent = extent, cmap = 'GnBu')

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QApplication
 import sys
-
+import os
+os.chdir('/home/tvivier/Python/Time-Frequency-Module')
 from app.psd import PSDWindow
 from app.data import ImportDataWindow
 from backend.psd import EpochsPSD
