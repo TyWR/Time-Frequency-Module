@@ -2,7 +2,6 @@
 Module contenant les fonctions suivantes, destinées à lire pour MNE différents types de fichier :
 
 A tester sur plusieurs fichier ...
-
 """
 from mne.io import RawArray
 from mne import create_info

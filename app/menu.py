@@ -6,7 +6,7 @@ from backend.psd import EpochsPSD
 from app.psd import PSDWindow
 from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
-
+import _thread
 """
 File containing the main window class, ie the window for selectionning
 the path of the dataset, choose the parameters for computing the PSD etc.
@@ -58,12 +58,14 @@ class MenuWindow(QMainWindow) :
 
     #---------------------------------------------------------------------
     def get_parameters(self) :
+        """Get parameters from txt file"""
+        # Need to handle all exceptions ...
         text = self.ui.psdParameters.toPlainText()
         params = text.replace(" ", "").split('\n')
         dic = {}
         for param in params :
             param, val = param.replace(" ", "").split("=")
-            if val == 'Default':
+            if val == 'Default'or val == 'None':
                 dic[param] = None
             else :
                 dic[param] = float(val)
@@ -73,23 +75,20 @@ class MenuWindow(QMainWindow) :
     def read_data(self) :
         """Set-up the data in mne class"""
         extension = self.ui.chooseFileType.currentText()
-        if extension == '.ep' :
-            print('EP')
-        if extension == '.eph' :
-            print('EPH')
-        if extension == '.sef' :
-            print('SEF')
         if extension == '.fif' :
             from mne import read_epochs
             self.epochs = read_epochs(self.filePath)
 
     #---------------------------------------------------------------------
     def plot_data(self) :
-        """Initialize the data and plot the data"""
+        """Initialize the data and plot the data on a new thread"""
+        def run() :
+            plt.close('all')
+            self.epochs.plot()
+            plt.show()
+
         self.read_data()
-        plt.close()
-        self.epochs.plot()
-        plt.show()
+        _thread.start_new_thread(run, ())
 
     #---------------------------------------------------------------------
     def open_psd_visualizer(self) :

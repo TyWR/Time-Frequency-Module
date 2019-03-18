@@ -195,7 +195,7 @@ class PSDWindow(QDialog):
     #---------------------------------------------------------------------
     def plot_single_psd(self, epoch_picked, channel_picked) :
         """Plot one single PSD"""
-        plt.close()
+        plt.close('all')
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
         self.psd.plot_single_psd(epoch_picked, channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
@@ -205,7 +205,7 @@ class PSDWindow(QDialog):
     #---------------------------------------------------------------------
     def plot_single_avg_psd(self, channel_picked) :
         """Plot one single averaged PSD"""
-        plt.close()
+        plt.close('all')
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
         self.psd.plot_single_avg_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
