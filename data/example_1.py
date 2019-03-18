@@ -22,3 +22,8 @@ def get_example1() :
     epochs = mne.Epochs(raw, events, event_id, tmin, tmax, proj=True,
                         picks=picks, baseline=(None, 0), preload=True)
     return epochs
+
+
+
+epochs = get_example1()
+epochs.save('example1-epo.fif')
