@@ -1,0 +1,4 @@
+App
+matplotlib == 2.2.3
+mne
+numpy
