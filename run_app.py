@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QApplication
 import sys
 import os
-os.chdir('/home/tvivier/Python/Time-Frequency-Module')
+print('CURRENT DIRECTORY FOLDER : ', os.getcwd())
 
 from app.psd import PSDWindow
 from app.data import ImportDataWindow

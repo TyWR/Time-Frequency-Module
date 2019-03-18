@@ -184,7 +184,7 @@ class PSDWindow(QDialog):
             # If both are checked, it depends on which plot user clicked
             if self.ui.showMean.checkState() and self.ui.showSingleEpoch.checkState() :
                 if ax_picked.is_first_col() : self.plot_single_psd(epoch_picked, channel_picked)
-                else : self.plot_single_avg_psd(channel_picked)
+                else                        : self.plot_single_avg_psd(channel_picked)
 
             elif self.ui.showSingleEpoch.checkState() :
                 self.plot_single_psd(epoch_picked, channel_picked)
@@ -215,6 +215,7 @@ class PSDWindow(QDialog):
     #---------------------------------------------------------------------
     def set_ax_single_psd(self, ax) :
         """Set axes values for a single PSD plot"""
-        ax.set_ylim([0, self.vmax])
         ax.set_xlim([self.psd.freqs[self.f_index_min], self.psd.freqs[self.f_index_max]])
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Power (µV²/Hz)')
         plt.show()
