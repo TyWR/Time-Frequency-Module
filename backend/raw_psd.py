@@ -20,7 +20,7 @@ class RawPSD :
 
         Arguments :
         ============
-        epochs (mne Epochs)         : Instance of epochs to be processed
+        raw (mne Raw)               : Instance of Raw to be processed
         method (str)                : 'multitaper' or 'welch'
         n_fft (int)                 : welch parameter for n_fft                 (default = 256)
         n_per_seg (int)             : welch parameter for number of segments    (default = n_fft)
@@ -74,7 +74,6 @@ class RawPSD :
 
         Arguments :
         ============
-        epoch_index (int)           : index of the epoch in epochs
         freq_index  (int)           : index of the frequency in self.freqs
         axes           (axe)        : Instance of matplotlib Axes
 

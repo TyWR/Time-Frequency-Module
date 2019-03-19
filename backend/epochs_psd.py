@@ -72,8 +72,8 @@ class EpochsPSD :
 
 
         if method == 'multitaper' :
-            print("Computing Mulitaper PSD with parameter bandwidth = {} on {} Epochs".format(
-                  self.bandwidth, len(self.info['chs'])))
+            print("Computing Mulitaper PSD with parameter bandwidth = {} on ".format(
+                  self.bandwidth))
             self.data, self.freqs = psd_multitaper(epochs,
                                                    fmin             = fmin,
                                                    fmax             = fmax,
@@ -83,8 +83,8 @@ class EpochsPSD :
                                                    bandwidth        = self.bandwidth)
 
         if method == 'welch'      :
-            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {} on {} Epochs".format(
-                  self.n_fft, self.n_per_seg, self.n_overlap, len(self.info['chs'])))
+            print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
+                  self.n_fft, self.n_per_seg, self.n_overlap))
             self.data, self.freqs = psd_welch(epochs,
                                               fmin      = fmin,
                                               fmax      = fmax,

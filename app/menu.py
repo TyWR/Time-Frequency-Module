@@ -64,21 +64,33 @@ class MenuWindow(QMainWindow) :
     def read_data(self) :
         """Set-up the data in mne class"""
         extension = self.ui.chooseFileType.currentText()
+
         if extension == '-epo.fif' :
             from mne import read_epochs
             self.dataType = 'epochs'
             self.eeg_data = read_epochs(self.filePath)
+
         if extension == '.ep' :
             from backend.read import read_ep
             self.dataType = 'raw'
             self.eeg_data = read_ep(self.filePath)
+
+        if extension == '.eph' :
+            from backend.read import read_eph
+            self.dataType = 'raw'
+            self.eeg_data = read_eph(self.filePath)
+
+        if extension == '.sef' :
+            from backend.read import read_sef
+            self.dataType = 'raw'
+            self.eeg_data = read_sef(self.filePath)
 
     #---------------------------------------------------------------------
     def plot_data(self) :
         """Initialize the data and plot the data on a matplotlib window"""
         self.read_data()
         plt.close('all')
-        self.eeg_data.plot()
+        self.eeg_data.plot(scalings = 'auto')
         plt.show()
 
     #---------------------------------------------------------------------

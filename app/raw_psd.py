@@ -111,7 +111,7 @@ class RawPSDWindow(QDialog):
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
         self.psd.plot_single_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
-        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, channel_picked))
+        ax.set_title('PSD of channel {}'.format(channel_picked))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------
