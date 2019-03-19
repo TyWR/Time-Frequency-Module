@@ -2,7 +2,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from backend.epochs_psd import EpochsPSD
+from backend.raw_psd import RawPSD
 from app.epochs_psd import EpochsPSDWindow
+from app.raw_psd import RawPSDWindow
 from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
 import _thread
@@ -64,14 +66,19 @@ class MenuWindow(QMainWindow) :
         extension = self.ui.chooseFileType.currentText()
         if extension == '-epo.fif' :
             from mne import read_epochs
-            self.epochs = read_epochs(self.filePath)
+            self.dataType = 'epochs'
+            self.eeg_data = read_epochs(self.filePath)
+        if extension == '.ep' :
+            from backend.read import read_ep
+            self.dataType = 'raw'
+            self.eeg_data = read_ep(self.filePath)
 
     #---------------------------------------------------------------------
     def plot_data(self) :
         """Initialize the data and plot the data on a matplotlib window"""
         self.read_data()
         plt.close('all')
-        self.epochs.plot()
+        self.eeg_data.plot()
         plt.show()
 
     #---------------------------------------------------------------------
@@ -79,9 +86,15 @@ class MenuWindow(QMainWindow) :
         """Redirect to PSD Visualize app"""
         self.read_data()
         self.get_parameters()
+        if self.dataType == 'epochs' :
+            self.open_epochs_psd_visualizer()
+        if self.dataType == 'raw' :
+            self.open_raw_psd_visualizer()
+
+    def open_epochs_psd_visualizer(self) :
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
-            self.psd = EpochsPSD(self.epochs,
+            self.psd = EpochsPSD(self.eeg_data,
                                  fmin       = self.psdParams['fmin'],
                                  fmax       = self.psdParams['fmax'],
                                  tmin       = self.psdParams['tmin'],
@@ -92,7 +105,7 @@ class MenuWindow(QMainWindow) :
                                  n_overlap  = int(self.psdParams.get('n_overlap', 0)))
 
         if self.ui.psdMethod.currentText() == 'Multitaper' :
-            self.psd = EpochsPSD(self.epochs,
+            self.psd = EpochsPSD(self.eeg_data,
                                  fmin       = self.psdParams['fmin'],
                                  fmax       = self.psdParams['fmax'],
                                  tmin       = self.psdParams['tmin'],
@@ -103,6 +116,30 @@ class MenuWindow(QMainWindow) :
         psdVisualizer = EpochsPSDWindow(self.psd)
         psdVisualizer.show()
 
+    def open_raw_psd_visualizer(self) :
+        if self.ui.psdMethod.currentText() == 'Welch' :
+            n_fft    = int(self.psdParams.get('n_fft', 256))
+            self.psd = RawPSD(self.eeg_data,
+                              fmin       = self.psdParams['fmin'],
+                              fmax       = self.psdParams['fmax'],
+                              tmin       = self.psdParams['tmin'],
+                              tmax       = self.psdParams['tmax'],
+                              method     = 'welch',
+                              n_fft      = n_fft,
+                              n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
+                              n_overlap  = int(self.psdParams.get('n_overlap', 0)))
+
+        if self.ui.psdMethod.currentText() == 'Multitaper' :
+            self.psd = RawPSD(self.eeg_data,
+                              fmin       = self.psdParams['fmin'],
+                              fmax       = self.psdParams['fmax'],
+                              tmin       = self.psdParams['tmin'],
+                              tmax       = self.psdParams['tmax'],
+                              method     = 'multitaper',
+                              bandwidth  = int(self.psdParams.get('bandwidth', 4)))
+
+        psdVisualizer = RawPSDWindow(self.psd)
+        psdVisualizer.show()
     #=====================================================================
     #Choosing main file path
     def choose_path(self) :
