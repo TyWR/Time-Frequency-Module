@@ -7,6 +7,7 @@ from app.psd import PSDWindow
 from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
 import _thread
+
 """
 File containing the main window class, ie the window for selectionning
 the path of the dataset, choose the parameters for computing the PSD etc.
@@ -36,6 +37,7 @@ class MenuWindow(QMainWindow) :
         self.ui.lineEdit.editingFinished.connect(self.path_change)
         self.ui.plotData.clicked.connect(self.plot_data)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
+        self.ui.psdParametersButton.clicked.connect(self.choose_parameters_path)
 
     #---------------------------------------------------------------------
     def set_sliders(self) :
@@ -50,17 +52,17 @@ class MenuWindow(QMainWindow) :
     def init_psd_parameters(self) :
         """Set the parameters in the parameters text slot"""
         if self.ui.psdMethod.currentText() == 'Welch' :
-            self.ui.psdParameters.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
+            self.ui.psdParametersText.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
                                             "n_fft=256\nn_per_seg=256\nn_overlap =0")
         if self.ui.psdMethod.currentText() == 'Multitaper' :
-            self.ui.psdParameters.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
+            self.ui.psdParametersText.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
                                           "bandwidth=4")
 
     #---------------------------------------------------------------------
     def get_parameters(self) :
         """Get parameters from txt file"""
         # Need to handle all exceptions ...
-        text = self.ui.psdParameters.toPlainText()
+        text = self.ui.psdParametersText.toPlainText()
         params = text.replace(" ", "").split('\n')
         dic = {}
         for param in params :
@@ -82,13 +84,11 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def plot_data(self) :
         """Initialize the data and plot the data on a new thread"""
-        def run() :
-            plt.close('all')
-            self.epochs.plot()
-            plt.show()
-
         self.read_data()
-        _thread.start_new_thread(run, ())
+        plt.close('all')
+        self.epochs.plot()
+        plt.show()
+
 
     #---------------------------------------------------------------------
     def open_psd_visualizer(self) :
@@ -120,7 +120,7 @@ class MenuWindow(QMainWindow) :
         psdVisualizer.show()
 
     #=====================================================================
-    # Choosing path
+    # Choosing main file path
     def choose_path(self) :
         self.filePath, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "Python Files (*.py)")
         self.ui.lineEdit.setText(self.filePath)
@@ -128,3 +128,15 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def path_change(self) :
         self.filePath = self.ui.lineEdit.text()
+
+    #=====================================================================
+    #Choosing parameters file path
+    def choose_parameters_path(self) :
+        self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
+        self.ui.psdParametersLine.setText(self.psdParametersPath)
+        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+
+    #---------------------------------------------------------------------
+    def parameters_path_change(self) :
+        self.psdParametersPath = self.ui.psdParametersLine.text()
+        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())

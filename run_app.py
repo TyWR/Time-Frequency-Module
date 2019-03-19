@@ -7,9 +7,6 @@ from app.psd import PSDWindow
 from app.data import ImportDataWindow
 from backend.psd import EpochsPSD
 from app.menu import MenuWindow
-import mne
-
-epochs = mne.read_epochs('data/example1-epo.fif')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
