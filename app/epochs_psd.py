@@ -6,16 +6,16 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import matplotlib.pyplot as plt
 from math import floor
 
-from app.psd_UI import Ui_PSDWindow
+from app.epochs_psd_UI import Ui_EpochsPSDWindow
 
 """
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
-class PSDWindow(QDialog):
+class EpochsPSDWindow(QDialog):
     def __init__(self, epochsPSD, parent=None):
-        super(PSDWindow, self).__init__(parent)
+        super(EpochsPSDWindow, self).__init__(parent)
         self.psd = epochsPSD
-        self.ui = Ui_PSDWindow()
+        self.ui = Ui_EpochsPSDWindow()
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
         self.setup_window()

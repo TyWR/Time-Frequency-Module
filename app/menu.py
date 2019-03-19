@@ -1,9 +1,8 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-import os
-from backend.psd import EpochsPSD
-from app.psd import PSDWindow
+from backend.epochs_psd import EpochsPSD
+from app.epochs_psd import EpochsPSDWindow
 from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
 import _thread
@@ -13,7 +12,6 @@ File containing the main window class, ie the window for selectionning
 the path of the dataset, choose the parameters for computing the PSD etc.
 """
 class MenuWindow(QMainWindow) :
-
     def __init__(self) :
         super(MenuWindow, self).__init__(parent = None)
         self.setWindowTitle("Open PSD Visualize")
@@ -102,7 +100,7 @@ class MenuWindow(QMainWindow) :
                                  method     = 'multitaper',
                                  bandwidth  = int(self.psdParams.get('bandwidth', 4)))
 
-        psdVisualizer = PSDWindow(self.psd)
+        psdVisualizer = EpochsPSDWindow(self.psd)
         psdVisualizer.show()
 
     #=====================================================================
