@@ -25,7 +25,7 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def setup_ui(self) :
         """Setup the ui with initial values and bindings"""
-        self.set_sliders()
+        self.set_boxes()
         self.set_bindings()
         self.init_psd_parameters()
 
@@ -34,15 +34,17 @@ class MenuWindow(QMainWindow) :
         """Set all the bindings"""
         self.ui.psdButton.clicked.connect(self.open_psd_visualizer)
         self.ui.pathButton.clicked.connect(self.choose_path)
-        self.ui.lineEdit.editingFinished.connect(self.path_change)
+        self.ui.savePsdButton.clicked.connect(self.choose_save_path)
         self.ui.plotData.clicked.connect(self.plot_data)
+        self.ui.psdParametersButton.clicked.connect(self.choose_psd_parameters_path)
+        self.ui.lineEdit.editingFinished.connect(self.path_change)
+        self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_change)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
-        self.ui.psdParametersButton.clicked.connect(self.choose_parameters_path)
 
     #---------------------------------------------------------------------
-    def set_sliders(self) :
-        """Set slider for extensions"""
-        for extension in ['.fif','.ep', '.eph', '.sef'] :
+    def set_boxes(self) :
+        """Set the values of the combo boxes"""
+        for extension in ['.fif','-epo.fif', '.ep', '.eph', '.sef'] :
             self.ui.chooseFileType.addItem(extension)
 
         self.ui.psdMethod.addItem('Welch')
@@ -51,61 +53,45 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def init_psd_parameters(self) :
         """Set the parameters in the parameters text slot"""
+        text = "fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"
         if self.ui.psdMethod.currentText() == 'Welch' :
-            self.ui.psdParametersText.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
-                                            "n_fft=256\nn_per_seg=256\nn_overlap =0")
+            text = text + "n_fft=256\nn_per_seg=256\nn_overlap =0"
         if self.ui.psdMethod.currentText() == 'Multitaper' :
-            self.ui.psdParametersText.setText("fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"+
-                                          "bandwidth=4")
-
-    #---------------------------------------------------------------------
-    def get_parameters(self) :
-        """Get parameters from txt file"""
-        # Need to handle all exceptions ...
-        text = self.ui.psdParametersText.toPlainText()
-        params = text.replace(" ", "").split('\n')
-        dic = {}
-        for param in params :
-            param, val = param.replace(" ", "").split("=")
-            if val == 'Default'or val == 'None':
-                dic[param] = None
-            else :
-                dic[param] = float(val)
-        self.psdParams = dic
+            text = text + "bandwidth=4"
+        self.ui.psdParametersText.setText(text)
 
     #---------------------------------------------------------------------
     def read_data(self) :
         """Set-up the data in mne class"""
         extension = self.ui.chooseFileType.currentText()
-        if extension == '.fif' :
+        if extension == '-epo.fif' :
             from mne import read_epochs
             self.epochs = read_epochs(self.filePath)
 
     #---------------------------------------------------------------------
     def plot_data(self) :
-        """Initialize the data and plot the data on a new thread"""
+        """Initialize the data and plot the data on a matplotlib window"""
         self.read_data()
         plt.close('all')
         self.epochs.plot()
         plt.show()
-
 
     #---------------------------------------------------------------------
     def open_psd_visualizer(self) :
         """Redirect to PSD Visualize app"""
         self.read_data()
         self.get_parameters()
-        print(self.psdParams)
         if self.ui.psdMethod.currentText() == 'Welch' :
+            n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = EpochsPSD(self.epochs,
                                  fmin       = self.psdParams['fmin'],
                                  fmax       = self.psdParams['fmax'],
                                  tmin       = self.psdParams['tmin'],
                                  tmax       = self.psdParams['tmax'],
                                  method     = 'welch',
-                                 n_fft      = int(self.psdParams['n_fft']),
-                                 n_per_seg  = int(self.psdParams['n_per_seg']),
-                                 n_overlap  = int(self.psdParams['n_overlap']))
+                                 n_fft      = n_fft,
+                                 n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
+                                 n_overlap  = int(self.psdParams.get('n_overlap', 0)))
 
         if self.ui.psdMethod.currentText() == 'Multitaper' :
             self.psd = EpochsPSD(self.epochs,
@@ -114,13 +100,13 @@ class MenuWindow(QMainWindow) :
                                  tmin       = self.psdParams['tmin'],
                                  tmax       = self.psdParams['tmax'],
                                  method     = 'multitaper',
-                                 bandwidth  = int(self.psdParams['bandwidth']))
+                                 bandwidth  = int(self.psdParams.get('bandwidth', 4)))
 
         psdVisualizer = PSDWindow(self.psd)
         psdVisualizer.show()
 
     #=====================================================================
-    # Choosing main file path
+    #Choosing main file path
     def choose_path(self) :
         self.filePath, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "Python Files (*.py)")
         self.ui.lineEdit.setText(self.filePath)
@@ -131,12 +117,41 @@ class MenuWindow(QMainWindow) :
 
     #=====================================================================
     #Choosing parameters file path
-    def choose_parameters_path(self) :
+    def choose_psd_parameters_path(self) :
         self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
 
     #---------------------------------------------------------------------
-    def parameters_path_change(self) :
+    def psd_parameters_path_change(self) :
         self.psdParametersPath = self.ui.psdParametersLine.text()
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+
+    #=====================================================================
+    #Choosing save file path
+    def choose_save_path(self) :
+        self.savepath = QFileDialog.getSaveFileName(self)
+
+    #=====================================================================
+    #Read parameters
+    def get_parameters(self) :
+        """Get parameters from txt file"""
+        # Need to handle all exceptions ...
+        text = self.ui.psdParametersText.toPlainText()
+        params = text.replace(" ", "").split('\n')
+        dic = {}
+        for param in params :
+            try :
+                param, val = param.replace(" ", "").split("=")
+            except ValueError :
+                print("Format must be of format param_id = value")
+
+            if val == 'Default'or val == 'None' : dic[param] = None
+            else : dic[param] = float(val)
+        self.psdParams = dic
+
+    #=====================================================================
+    #Redirect to epoching window
+    def raw_to_epochs(self) :
+        """Open the epoching utility window, and get the new epochs"""
+        return 0

@@ -18,9 +18,14 @@ class PSDWindow(QDialog):
         self.ui = Ui_PSDWindow()
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
+        self.setup_window()
+
+    def setup_window(self) :
+        """Call all the setup functions"""
         self.set_canvas()
         self.set_initial_values()
         self.set_bindings()
+        self.set_recap()
         self.plot_change()
 
     #=====================================================================
@@ -61,8 +66,13 @@ class PSDWindow(QDialog):
         self.ui.figureLayout.addWidget(self.ui.canvas)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
 
+    #---------------------------------------------------------------------
+    def set_recap(self) :
+        """Write the reminder of parameters at the bottom of the window"""
+        self.ui.recapLabel.setText(self.psd.recap())
+
     #=====================================================================
-    # Plotting function
+    # Main Plotting function
     def plot_psd(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the correct type of PSD"""
         if self.plotType == "Topomap" :
@@ -112,7 +122,6 @@ class PSDWindow(QDialog):
         """ Get called if a value is changed """
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
-
         self.vmax = float(self.ui.vmax.text())
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.ui.epochsSlider.value()

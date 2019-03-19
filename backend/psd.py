@@ -106,8 +106,16 @@ class EpochsPSD :
             string = string + "bandwidth : {}".format(self.bandwidth)
         return string
 
+    def recap(self) :
+        if self.method == 'welch' :
+            string = "Computed with Welch method, n_fft : {}, n_per_seg : {}, n_overlap : {}\n".format(
+                self.n_fft, self.n_per_seg, self.n_overlap)
+        else :
+            string = "Computed with Multitaper method, bandwidth : {}".format(self.bandwidth)
+        return string
+
     #--------------------------------------------------------------------------------------------------------
-    def plot_topomap(self, epoch_index, freq_index, axes = None) :
+    def plot_topomap(self, epoch_index, freq_index, axes = None, show_names = False) :
         """
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
@@ -128,10 +136,10 @@ class EpochsPSD :
             raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index]
-        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = 'GnBu')
+        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = 'GnBu', show_names = show_names)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+    def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False) :
         """
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
         , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
@@ -156,10 +164,10 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu', show_names = show_names)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+    def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
@@ -186,7 +194,7 @@ class EpochsPSD :
         psd_values = self.data[:, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu')
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu', show_names = show_names)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
@@ -290,3 +298,7 @@ class EpochsPSD :
             return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
+
+    #--------------------------------------------------------------------------------------------------------
+    def save_as_txt(self, path) :
+        return 0
