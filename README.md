@@ -1,4 +1,6 @@
 # Time-Frequency-Module
 Development of Time-Frequency module for EEG signal processing
 
-The repository contains one run_app.py folder to launch the app. For now, you can import in this file a MNE-Epochs instance, and compute the PSDs with class EpochsPSD defined in this app. You can then launch the PSDWindow with argument EpochsPSD to launch the interactive visualization of the PSDs with an example from the mne library.
+To launch the app, simply run the `run_app.py` file.
+
+For now, the app can only treat the data to display the power spectrum density of raw eeg files, and epoched eeg files, with the formats `fif`, `sef`, `ep` and `eph`.
