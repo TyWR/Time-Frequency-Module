@@ -7,6 +7,10 @@ from mne.io import RawArray
 from mne import create_info
 import numpy as np
 import struct
+import re
+
+
+import matplotlib.pyplot as plt
 
 def read_ep(path, **kwargs) :
     """
@@ -122,12 +126,13 @@ def read_sef(path, montage = None) :
     #   Read variable part of the header
     ch_names = []
     for k in range(n_channels) :
-        ch_names.append(f.read(8).decode('utf-8').rstrip('\x00'))
+        name = f.read(8).decode('latin-1')
+        ch_names.append(re.sub('[^0-9a-zA-Z]+', '', name))
 
     # Read data
-    buffer = np.frombuffer(f.read(n_channels * num_time_frames * 8), dtype=np.float32)
-    data = np.reshape(buffer, (n_channels, num_time_frames))
-
+    buffer = np.frombuffer(f.read(n_channels * num_time_frames * 8), dtype=np.float32, count = n_channels * num_time_frames)
+    data = np.reshape(buffer, (num_time_frames, n_channels))
+    
     ch_types = ['eeg' for i in range(n_channels)]
     infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types)
-    return RawArray(data, infos)
+    return RawArray(np.transpose(data), infos)

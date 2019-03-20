@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=PSD Visualizer
+Exec=python3 Python/Time-Frequency-Module/run_app.py
+Terminal=false
+Type=Application
