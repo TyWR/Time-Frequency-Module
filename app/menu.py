@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from mne.channels import read_montage
 from backend.epochs_psd import EpochsPSD
 from backend.raw_psd import RawPSD
 from app.epochs_psd import EpochsPSDWindow
@@ -8,6 +9,7 @@ from app.raw_psd import RawPSDWindow
 from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
 import _thread
+
 
 """
 File containing the main window class, ie the window for selectionning
@@ -30,6 +32,7 @@ class MenuWindow(QMainWindow) :
         self.set_boxes()
         self.set_bindings()
         self.init_psd_parameters()
+        self.set_montage_box()
         self.filePath = ''
         self.dataType = None
 
@@ -64,6 +67,13 @@ class MenuWindow(QMainWindow) :
             text = text + "bandwidth=4"
         self.ui.psdParametersText.setText(text)
 
+    #---------------------------------------------------------------------
+    def set_montage_box(self) :
+        methods = ['No coordinates', 'standard_1005', 'standard_1020', 'standard_alphabetic',
+                    'standard_post', 'fixedstandard_prefixed', 'standard_primed']
+        for method in methods :
+            self.ui.electrodeMontage.addItem(method)
+
     #=====================================================================
     # Reading data
     #=====================================================================
@@ -95,6 +105,10 @@ class MenuWindow(QMainWindow) :
             self.dataType = 'raw'
             self.eeg_data = read_sef(self.filePath)
 
+        montage = self.ui.electrodeMontage.currentText()
+        if montage != 'No coordinates' :
+            self.eeg_data.set_montage(read_montage(montage))
+
     #---------------------------------------------------------------------
     def plot_data(self) :
         """Initialize the data and plot the data on a matplotlib window"""
@@ -102,6 +116,8 @@ class MenuWindow(QMainWindow) :
             self.read_data()
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file\nPlease verify the path and extension")
+        except (ValueError) :
+            self.show_error("Names of electrodes don't fit convention")
         else :
             plt.close('all')
             self.eeg_data.plot(scalings = 'auto')

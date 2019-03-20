@@ -1,16 +1,11 @@
 """
 Module contenant les fonctions suivantes, destinées à lire pour MNE différents types de fichier :
-
-A tester sur plusieurs fichier ...
 """
 from mne.io import RawArray
 from mne import create_info
 import numpy as np
 import struct
 import re
-
-
-import matplotlib.pyplot as plt
 
 def read_ep(path, **kwargs) :
     """
@@ -132,7 +127,7 @@ def read_sef(path, montage = None) :
     # Read data
     buffer = np.frombuffer(f.read(n_channels * num_time_frames * 8), dtype=np.float32, count = n_channels * num_time_frames)
     data = np.reshape(buffer, (num_time_frames, n_channels))
-    
+
     ch_types = ['eeg' for i in range(n_channels)]
     infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types)
     return RawArray(np.transpose(data), infos)
