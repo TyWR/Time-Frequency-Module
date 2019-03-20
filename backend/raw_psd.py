@@ -74,8 +74,9 @@ class RawPSD :
 
         Arguments :
         ============
-        freq_index  (int)           : index of the frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
+        freq_index (int)            : index of the frequency in self.freqs
+        axes (axe)                  : Instance of matplotlib Axes
+        show_names (bool)           : show names on topomap (needs names in file)
 
         Returns :
         ============
@@ -102,6 +103,7 @@ class RawPSD :
         axes           (axe)        : Instance of matplotlib Axes
         vmin           (float)      : Maximum value of power to display
         vmax           (float)      : Minimum value of power to display
+        show_names     (bool)       : show names on topomap (needs names in file)
 
         Returns :
         ============
@@ -145,8 +147,8 @@ class RawPSD :
     #--------------------------------------------------------------------------------------------------------
     def plot_single_psd(self, channel_index, freq_index_min, freq_index_max, axes = None) :
         """
-        Plot a single PSD corresponding to epoch_index and channel_index, between the values
-        corresponding to freq_index_max and freq_index_min.
+        Plot a single PSD corresponding channel_index, between the values corresponding
+        to freq_index_max and freq_index_min.
 
         Arguments :
         ============

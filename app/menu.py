@@ -22,12 +22,16 @@ class MenuWindow(QMainWindow) :
         self.ui.retranslateUi(self)
         self.setup_ui()
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Setup functions
+    #=====================================================================
     def setup_ui(self) :
         """Setup the ui with initial values and bindings"""
         self.set_boxes()
         self.set_bindings()
         self.init_psd_parameters()
+        self.filePath = ''
+        self.dataType = None
 
     #---------------------------------------------------------------------
     def set_bindings(self) :
@@ -60,10 +64,16 @@ class MenuWindow(QMainWindow) :
             text = text + "bandwidth=4"
         self.ui.psdParametersText.setText(text)
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Reading data
+    #=====================================================================
     def read_data(self) :
         """Set-up the data in mne class"""
         extension = self.ui.chooseFileType.currentText()
+        if extension == '.fif' :
+            from mne.io import read_raw_fif
+            self.dataType = 'raw'
+            self.eeg_data = read_raw_fif(self.filePath)
 
         if extension == '-epo.fif' :
             from mne import read_epochs
@@ -88,22 +98,34 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def plot_data(self) :
         """Initialize the data and plot the data on a matplotlib window"""
-        self.read_data()
-        plt.close('all')
-        self.eeg_data.plot(scalings = 'auto')
-        plt.show()
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file\nPlease verify the path and extension")
+        else :
+            plt.close('all')
+            self.eeg_data.plot(scalings = 'auto')
+            plt.show()
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Open PSD Visualizer
+    #=====================================================================
     def open_psd_visualizer(self) :
         """Redirect to PSD Visualize app"""
-        self.read_data()
-        self.get_parameters()
-        if self.dataType == 'epochs' :
-            self.open_epochs_psd_visualizer()
-        if self.dataType == 'raw' :
-            self.open_raw_psd_visualizer()
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+        else :
+            self.get_parameters()
+            if self.dataType == 'epochs' :
+                self.open_epochs_psd_visualizer()
+            if self.dataType == 'raw' :
+                self.open_raw_psd_visualizer()
 
+    #---------------------------------------------------------------------
     def open_epochs_psd_visualizer(self) :
+        """Open PSD visualizer for epochs data"""
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = EpochsPSD(self.eeg_data,
@@ -128,7 +150,9 @@ class MenuWindow(QMainWindow) :
         psdVisualizer = EpochsPSDWindow(self.psd)
         psdVisualizer.show()
 
+    #---------------------------------------------------------------------
     def open_raw_psd_visualizer(self) :
+        """Open PSD Visualizer for raw type data"""
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = RawPSD(self.eeg_data,
@@ -152,8 +176,10 @@ class MenuWindow(QMainWindow) :
 
         psdVisualizer = RawPSDWindow(self.psd)
         psdVisualizer.show()
+
     #=====================================================================
     #Choosing main file path
+    #=====================================================================
     def choose_path(self) :
         self.filePath, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "Python Files (*.py)")
         self.ui.lineEdit.setText(self.filePath)
@@ -164,6 +190,7 @@ class MenuWindow(QMainWindow) :
 
     #=====================================================================
     #Choosing parameters file path
+    #=====================================================================
     def choose_psd_parameters_path(self) :
         self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
@@ -176,11 +203,13 @@ class MenuWindow(QMainWindow) :
 
     #=====================================================================
     #Choosing save file path
+    #=====================================================================
     def choose_save_path(self) :
         self.savepath = QFileDialog.getSaveFileName(self)
 
     #=====================================================================
     #Read parameters
+    #=====================================================================
     def get_parameters(self) :
         """Get parameters from txt file"""
         # Need to handle all exceptions ...
@@ -199,6 +228,19 @@ class MenuWindow(QMainWindow) :
 
     #=====================================================================
     #Redirect to epoching window
+    #=====================================================================
     def raw_to_epochs(self) :
         """Open the epoching utility window, and get the new epochs"""
         return 0
+
+    #=====================================================================
+    # Error handling window
+    #=====================================================================
+    def show_error(self, msg) :
+        error = QMessageBox()
+        error.setIcon(QMessageBox.Warning)
+        error.setText("Error")
+        error.setInformativeText(msg)
+        error.setWindowTitle("Error")
+        error.setStandardButtons(QMessageBox.Ok)
+        error.exec_()

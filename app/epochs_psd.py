@@ -20,6 +20,7 @@ class EpochsPSDWindow(QDialog):
         self.ui.retranslateUi(self)
         self.setup_window()
 
+    #---------------------------------------------------------------------
     def setup_window(self) :
         """Call all the setup functions"""
         self.set_canvas()
@@ -30,6 +31,7 @@ class EpochsPSDWindow(QDialog):
 
     #=====================================================================
     # Setup functions
+    #=====================================================================
     def set_initial_values(self) :
         """Setup initial values"""
         self.ui.epochsSlider.setMaximum(self.psd.data.shape[0] - 1)
@@ -73,6 +75,7 @@ class EpochsPSDWindow(QDialog):
 
     #=====================================================================
     # Main Plotting function
+    #=====================================================================
     def plot_psd(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the correct type of PSD"""
         if self.plotType == "Topomap" :
@@ -99,19 +102,8 @@ class EpochsPSDWindow(QDialog):
         self.ui.canvas.draw()
 
     #=====================================================================
-    # Auxiliary functions for plotting
-    def get_index_freq(self, fmin, fmax) :
-        """Get the indices of the freq between fmin and fmax"""
-        f_index_min, f_index_max = -1, 0
-        for freq in self.psd.freqs :
-            if freq <= fmin : f_index_min += 1
-            if freq <= fmax : f_index_max += 1
-
-        # Just check if f_index_max is not out of bound
-        f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
-        return f_index_min, f_index_max
-
-    #---------------------------------------------------------------------
+    # Updating the canvas functions
+    #=====================================================================
     def plot_change(self) :
         """Update the plot type"""
         self.plotType = self.ui.selectPlotType.currentText()
@@ -127,7 +119,9 @@ class EpochsPSDWindow(QDialog):
         epoch_index = self.ui.epochsSlider.value()
         self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Adjusting the plots
+    #=====================================================================
     def topomaps_adjust(self, epoch_index, f_index_min, f_index_max, vmax) :
         """Plot the good number of subplots and update cbar_image instance"""
 
@@ -180,7 +174,9 @@ class EpochsPSDWindow(QDialog):
             cbar.ax.get_xaxis().labelpad = 15
             cbar.ax.set_xlabel('PSD (µV²/Hz)')
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Handle PSD single plotting on click
+    #=====================================================================
     def __onclick__(self, click) :
         """Get coordinates on the canvas and plot the corresponding PSD"""
         channel_picked = click.ydata
@@ -228,3 +224,17 @@ class EpochsPSDWindow(QDialog):
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Power (µV²/Hz)')
         plt.show()
+
+    #=====================================================================
+    # Auxiliary function
+    #=====================================================================
+    def get_index_freq(self, fmin, fmax) :
+        """Get the indices of the freq between fmin and fmax"""
+        f_index_min, f_index_max = -1, 0
+        for freq in self.psd.freqs :
+            if freq <= fmin : f_index_min += 1
+            if freq <= fmax : f_index_max += 1
+
+        # Just check if f_index_max is not out of bound
+        f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
+        return f_index_min, f_index_max

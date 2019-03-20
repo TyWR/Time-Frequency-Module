@@ -16,9 +16,10 @@ class RawPSDWindow(QDialog):
         self.ui = Ui_RawPSDWindow()
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
-        self.setup_ui()
+        self.setup_window()
 
-    def setup_ui(self) :
+    #---------------------------------------------------------------------
+    def setup_window(self) :
         self.set_canvas()
         self.set_initial_values()
         self.set_bindings()
@@ -26,6 +27,7 @@ class RawPSDWindow(QDialog):
 
     #=====================================================================
     # Setup functions
+    #=====================================================================
     def set_initial_values(self) :
         """Setup initial values"""
         self.ui.fmin.setText(str(self.psd.freqs[0]))
@@ -53,8 +55,10 @@ class RawPSDWindow(QDialog):
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.figureLayout.addWidget(self.ui.canvas)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
+
     #=====================================================================
     # Main Plotting function
+    #=====================================================================
     def plot_psd(self, f_index_min, f_index_max, vmax) :
         """Plot the correct type of PSD"""
         if self.plotType == "Topomap" :
@@ -87,15 +91,9 @@ class RawPSDWindow(QDialog):
         self.ui.figure.subplots_adjust(top = 0.85, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
-    #---------------------------------------------------------------------
-    def add_colorbar(self, position) :
-        """ Add colorbar to the plot at correct position """
-        cax = self.ui.figure.add_axes(position)
-        cbar = plt.colorbar(self.cbar_image, cax = cax)
-        cbar.ax.get_xaxis().labelpad = 15
-        cbar.ax.set_xlabel('PSD (µV²/Hz)')
-
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Handle PSD single plotting on click
+    #=====================================================================
     def __onclick__(self, click) :
         """Get coordinates on the canvas and plot the corresponding PSD"""
         channel_picked = click.ydata
@@ -114,6 +112,16 @@ class RawPSDWindow(QDialog):
         ax.set_title('PSD of channel {}'.format(channel_picked))
         self.set_ax_single_psd(ax)
 
+    #=====================================================================
+    # Adjusting the plots
+    #=====================================================================
+    def add_colorbar(self, position) :
+        """ Add colorbar to the plot at correct position """
+        cax = self.ui.figure.add_axes(position)
+        cbar = plt.colorbar(self.cbar_image, cax = cax)
+        cbar.ax.get_xaxis().labelpad = 15
+        cbar.ax.set_xlabel('PSD (µV²/Hz)')
+
     #---------------------------------------------------------------------
     def set_ax_single_psd(self, ax) :
         """Set axes values for a single PSD plot"""
@@ -122,7 +130,9 @@ class RawPSDWindow(QDialog):
         ax.set_ylabel('Power (µV²/Hz)')
         plt.show()
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Updating the canvas functions
+    #=====================================================================
     def plot_change(self) :
         """Update the plot type"""
         self.plotType = self.ui.selectPlotType.currentText()
@@ -138,7 +148,8 @@ class RawPSDWindow(QDialog):
         self.plot_psd(self.f_index_min, self.f_index_max, self.vmax)
 
     #=====================================================================
-    # Auxiliary functions for plotting
+    # Auxiliary function
+    #=====================================================================
     def get_index_freq(self, fmin, fmax) :
         """Get the indices of the freq between fmin and fmax"""
         f_index_min, f_index_max = -1, 0
