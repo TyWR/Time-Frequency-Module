@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=PSD Visualizer
-Exec=python3 Python/Time-Frequency-Module/run_app.py
+Icon=/home/tvivier/Python/Time-Frequency-Module/media/logo.svg
+Exec=python3 /home/tvivier/Python/Time-Frequency-Module/run_app.py
 Terminal=true
 Type=Application
