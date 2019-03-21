@@ -137,7 +137,8 @@ class RawPSD :
         ============
         Instance of Matplotlib.Image
         """
-        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.info['nchan']+1, 1]
+        print("SHAPE MATRIX", self.data.shape)
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[0] + 1, 1]
         mat = self.data[:, freq_index_min : freq_index_max]
         if axes is not None :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)

@@ -42,7 +42,7 @@ class EpochsPSDWindow(QDialog):
         self.ui.fmin.setMaxLength(4)
         self.ui.fmax.setText(str(self.psd.freqs[-1]))
         self.ui.fmax.setMaxLength(4)
-        self.ui.vmax.setText("3e-12")
+        self.ui.vmax.setText("0")
         self.ui.fmax.setMaxLength(6)
         self.ui.showMean.setCheckState(2)
         self.ui.selectPlotType.addItem("PSD Matrix")
@@ -118,6 +118,7 @@ class EpochsPSDWindow(QDialog):
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
         self.vmax = float(self.ui.vmax.text())
+        if self.vmax == 0 : self.vmax = None
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.ui.epochsSlider.value()
         self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)
@@ -185,7 +186,7 @@ class EpochsPSDWindow(QDialog):
         channel_picked = click.ydata
         ax_picked = click.inaxes
 
-        if channel_picked is not None and self.plotType == "PSD Matrix" :
+        if channel_picked is not None and self.plotType == "PSD Matrix" and click.dblclick :
             channel_picked = floor(channel_picked)
             epoch_picked = self.ui.epochsSlider.value()
 

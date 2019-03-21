@@ -43,6 +43,7 @@ class MenuWindow(QMainWindow) :
         self.ui.pathButton.clicked.connect(self.choose_path)
         self.ui.savePsdButton.clicked.connect(self.choose_save_path)
         self.ui.plotData.clicked.connect(self.plot_data)
+        self.ui.displayDataButton.clicked.connect(self.display_data_infos)
         self.ui.psdParametersButton.clicked.connect(self.choose_psd_parameters_path)
         self.ui.lineEdit.editingFinished.connect(self.path_change)
         self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_change)
@@ -123,6 +124,15 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.plot(scalings = 'auto')
             plt.show()
 
+    #---------------------------------------------------------------------
+    def display_data_infos(self) :
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file\nPlease verify the path and extension")
+        else :
+            self.show_infos("Sampling Frequency : {}\n".format(self.eeg_data.info["sfreq"])+
+                            "Number of Channels : {}\n".format(self.eeg_data.info["nchan"]))
     #=====================================================================
     # Open PSD Visualizer
     #=====================================================================
@@ -260,3 +270,14 @@ class MenuWindow(QMainWindow) :
         error.setWindowTitle("Error")
         error.setStandardButtons(QMessageBox.Ok)
         error.exec_()
+
+    #=====================================================================
+    # Pop up window for informations
+    #=====================================================================
+    def show_infos(self, msg) :
+        info = QMessageBox()
+        info.setIcon(QMessageBox.Information)
+        info.setText("Data informations")
+        info.setInformativeText(msg)
+        info.setWindowTitle("Data Informations")
+        info.exec_()

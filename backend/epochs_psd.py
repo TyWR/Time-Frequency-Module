@@ -217,7 +217,7 @@ class EpochsPSD :
         ============
         Instance of Matplotlib.Image
         """
-        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.info['nchan'] + 1, 1]
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
         if axes is not None :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
@@ -245,7 +245,7 @@ class EpochsPSD :
         ============
         Instance of Matplotlib.Image
         """
-        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.info['nchan'] + 1, 1]
+        extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = self.data[epoch_index, :, freq_index_min : freq_index_max]
         if axes is not None :
             return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)

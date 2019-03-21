@@ -34,7 +34,7 @@ class RawPSDWindow(QDialog):
         self.ui.fmin.setMaxLength(4)
         self.ui.fmax.setText(str(self.psd.freqs[-1]))
         self.ui.fmin.setMaxLength(4)
-        self.ui.vmax.setText("3e-12")
+        self.ui.vmax.setText("0")   #Auto scaling by default
         self.ui.fmin.setMaxLength(6)
         self.ui.selectPlotType.addItem("PSD Matrix")
         self.ui.selectPlotType.addItem("Topomap")
@@ -101,7 +101,7 @@ class RawPSDWindow(QDialog):
         """Get coordinates on the canvas and plot the corresponding PSD"""
         channel_picked = click.ydata
 
-        if channel_picked is not None and self.plotType == "PSD Matrix" :
+        if channel_picked is not None and self.plotType == "PSD Matrix" and click.dblclick :
             channel_picked = floor(channel_picked)
             self.plot_single_psd(channel_picked, channel_picked)
 
@@ -147,6 +147,7 @@ class RawPSDWindow(QDialog):
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
         self.vmax = float(self.ui.vmax.text())
+        if self.vmax == 0 : self.vmax = None
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         self.plot_psd(self.f_index_min, self.f_index_max, self.vmax)
 
