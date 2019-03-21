@@ -300,5 +300,5 @@ class EpochsPSD :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
 
     #--------------------------------------------------------------------------------------------------------
-    def save_as_txt(self, path) :
-        return 0
+    def save_matrix_txt(self, path) :
+        print("SHOULD SAVE MATRIX FOR EPOCHS")

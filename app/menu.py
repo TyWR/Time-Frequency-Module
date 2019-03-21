@@ -10,7 +10,6 @@ from app.menu_UI import Ui_MenuWindow
 import matplotlib.pyplot as plt
 import _thread
 
-
 """
 File containing the main window class, ie the window for selectionning
 the path of the dataset, choose the parameters for computing the PSD etc.
@@ -131,8 +130,13 @@ class MenuWindow(QMainWindow) :
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file\nPlease verify the path and extension")
         else :
-            self.show_infos("Sampling Frequency : {}\n".format(self.eeg_data.info["sfreq"])+
-                            "Number of Channels : {}\n".format(self.eeg_data.info["nchan"]))
+            infos = "Sampling Frequency : {}\nNumber of Channels : {}\n".format(
+                    self.eeg_data.info["sfreq"], self.eeg_data.info["nchan"])
+            if self.dataType == 'raw' :
+                infos = infos + "Number of Time points : {}".format(self.eeg_data.n_times)
+            if self.dataType == 'epochs' :
+                infos = infos + "Number of Time points per Epoch : {}".format(len(self.eeg_data.times))
+            self.show_infos(infos)
     #=====================================================================
     # Open PSD Visualizer
     #=====================================================================
@@ -150,8 +154,7 @@ class MenuWindow(QMainWindow) :
                 self.open_raw_psd_visualizer()
 
     #---------------------------------------------------------------------
-    def open_epochs_psd_visualizer(self) :
-        """Open PSD visualizer for epochs data"""
+    def init_epochs_psd(self) :
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = EpochsPSD(self.eeg_data,
@@ -173,12 +176,15 @@ class MenuWindow(QMainWindow) :
                                  method     = 'multitaper',
                                  bandwidth  = int(self.psdParams.get('bandwidth', 4)))
 
+    #---------------------------------------------------------------------
+    def open_epochs_psd_visualizer(self) :
+        """Open PSD visualizer for epochs data"""
+        self.init_epochs_psd()
         psdVisualizer = EpochsPSDWindow(self.psd)
         psdVisualizer.show()
 
     #---------------------------------------------------------------------
-    def open_raw_psd_visualizer(self) :
-        """Open PSD Visualizer for raw type data"""
+    def init_raw_psd(self) :
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = RawPSD(self.eeg_data,
@@ -200,6 +206,10 @@ class MenuWindow(QMainWindow) :
                               method     = 'multitaper',
                               bandwidth  = int(self.psdParams.get('bandwidth', 4)))
 
+    #---------------------------------------------------------------------
+    def open_raw_psd_visualizer(self) :
+        """Open PSD Visualizer for raw type data"""
+        self.init_raw_psd()
         psdVisualizer = RawPSDWindow(self.psd)
         psdVisualizer.show()
 
@@ -231,7 +241,20 @@ class MenuWindow(QMainWindow) :
     #Choosing save file path
     #=====================================================================
     def choose_save_path(self) :
-        self.savepath = QFileDialog.getSaveFileName(self)
+        self.savepath, _ = QFileDialog.getSaveFileName(self)
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+        else :
+            self.get_parameters()
+            if self.dataType == 'epochs' : self.init_epochs_psd()
+            if self.dataType == 'raw'    : self.init_raw_psd()
+            self.save_matrix_txt()
+
+    def save_matrix_txt(self) :
+        """Save the matrix containing the PSD"""
+        self.psd.save_matrix_txt(self.savepath)
 
     #=====================================================================
     #Read parameters
@@ -276,6 +299,7 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     def show_infos(self, msg) :
         info = QMessageBox()
+        info.setBaseSize(QSize(600, 120))
         info.setIcon(QMessageBox.Information)
         info.setText("Data informations")
         info.setInformativeText(msg)

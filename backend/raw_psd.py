@@ -166,3 +166,12 @@ class RawPSD :
             return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
+
+
+    def save_matrix_txt(self, path, freq_index_min = 0, freq_index_max = -1) :
+        """
+        Save the entire matrix as a raw txt-file containing the data of the matrix
+        """
+        from numpy import savetxt
+        data = self.data[:, freq_index_min:freq_index_max]
+        savetxt(path, data)
