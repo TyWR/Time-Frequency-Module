@@ -12,9 +12,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_EpochsPSDWindow(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(800, 800)
+        Dialog.resize(1600, 900)
         Dialog.setMinimumSize(QtCore.QSize(400, 300))
-        Dialog.setMaximumSize(QtCore.QSize(1080, 1720))
+        Dialog.setMaximumSize(QtCore.QSize(1720, 1080))
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
         self.verticalLayout_3.setObjectName("verticalLayout_3")

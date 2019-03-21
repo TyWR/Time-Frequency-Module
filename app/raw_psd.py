@@ -30,10 +30,10 @@ class RawPSDWindow(QDialog):
     #=====================================================================
     def set_initial_values(self) :
         """Setup initial values"""
+        self.ui.fmin.setMaxLength(4)
         self.ui.fmin.setText(str(self.psd.freqs[0]))
-        self.ui.fmin.setMaxLength(4)
+        self.ui.fmax.setMaxLength(4)
         self.ui.fmax.setText(str(self.psd.freqs[-1]))
-        self.ui.fmin.setMaxLength(4)
         self.ui.vmax.setText("0")   #Auto scaling by default
         self.ui.fmin.setMaxLength(6)
         self.ui.selectPlotType.addItem("PSD Matrix")
