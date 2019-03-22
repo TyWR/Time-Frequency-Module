@@ -51,7 +51,7 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def set_boxes(self) :
         """Set the values of the combo boxes"""
-        for extension in ['.fif','-epo.fif', '.ep', '.eph', '.sef'] :
+        for extension in ['.fif','-epo.fif','.sef', '.ep', '.eph'] :
             self.ui.chooseFileType.addItem(extension)
 
         self.ui.psdMethod.addItem('Welch')
@@ -69,6 +69,7 @@ class MenuWindow(QMainWindow) :
 
     #---------------------------------------------------------------------
     def set_montage_box(self) :
+        """Choose the naming conventions used for electrodes"""
         methods = ['No coordinates', 'standard_1005', 'standard_1020', 'standard_alphabetic',
                     'standard_post', 'fixedstandard_prefixed', 'standard_primed']
         for method in methods :
@@ -123,20 +124,29 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.plot(scalings = 'auto')
             plt.show()
 
-    #---------------------------------------------------------------------
+    #=====================================================================
+    # Display data informations
+    #=====================================================================
     def display_data_infos(self) :
+        """Display informations about data on a pop-up window"""
         try :
             self.read_data()
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file\nPlease verify the path and extension")
         else :
-            infos = "Sampling Frequency : {}\nNumber of Channels : {}\n".format(
-                    self.eeg_data.info["sfreq"], self.eeg_data.info["nchan"])
-            if self.dataType == 'raw' :
-                infos = infos + "Number of Time points : {}".format(self.eeg_data.n_times)
-            if self.dataType == 'epochs' :
-                infos = infos + "Number of Time points per Epoch : {}".format(len(self.eeg_data.times))
-            self.show_infos(infos)
+            self.show_infos(self.init_info_string())
+
+    #---------------------------------------------------------------------
+    def init_info_string(self) :
+        """Init a string with informations about data"""
+        infos = "Sampling Frequency : {}\nNumber of Channels : {}\n".format(
+                self.eeg_data.info["sfreq"], self.eeg_data.info["nchan"])
+        if self.dataType == 'raw' :
+            infos = infos + "Number of Time points : {}".format(self.eeg_data.n_times)
+        if self.dataType == 'epochs' :
+            infos = infos + "Number of Time points per Epoch : {}".format(len(self.eeg_data.times))
+        return infos
+
     #=====================================================================
     # Open PSD Visualizer
     #=====================================================================
@@ -155,6 +165,7 @@ class MenuWindow(QMainWindow) :
 
     #---------------------------------------------------------------------
     def init_epochs_psd(self) :
+        """Initialize the instance of EpochsPSD"""
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = EpochsPSD(self.eeg_data,
@@ -185,6 +196,7 @@ class MenuWindow(QMainWindow) :
 
     #---------------------------------------------------------------------
     def init_raw_psd(self) :
+        """Initialize the instance of RawPSD"""
         if self.ui.psdMethod.currentText() == 'Welch' :
             n_fft    = int(self.psdParams.get('n_fft', 256))
             self.psd = RawPSD(self.eeg_data,
@@ -217,7 +229,7 @@ class MenuWindow(QMainWindow) :
     #Choosing main file path
     #=====================================================================
     def choose_path(self) :
-        self.filePath, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "Python Files (*.py)")
+        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Python Files (*.py)")
         self.ui.lineEdit.setText(self.filePath)
 
     #---------------------------------------------------------------------
@@ -252,6 +264,7 @@ class MenuWindow(QMainWindow) :
             if self.dataType == 'raw'    : self.init_raw_psd()
             self.save_matrix_txt()
 
+    #---------------------------------------------------------------------
     def save_matrix_txt(self) :
         """Save the matrix containing the PSD"""
         self.psd.save_matrix_txt(self.savepath)
@@ -265,22 +278,14 @@ class MenuWindow(QMainWindow) :
         text = self.ui.psdParametersText.toPlainText()
         params = text.replace(" ", "").split('\n')
         dic = {}
-        for param in params :
-            try :
+        try :
+            for param in params :
                 param, val = param.replace(" ", "").split("=")
-            except ValueError :
-                print("Format must be of format param_id = value")
-
-            if val == 'Default'or val == 'None' : dic[param] = None
-            else : dic[param] = float(val)
+                if val == 'Default'or val == 'None' : dic[param] = None
+                else : dic[param] = float(val)
+        except ValueError :
+                self.show_error("Format of parameters must be param_id = value")
         self.psdParams = dic
-
-    #=====================================================================
-    #Redirect to epoching window
-    #=====================================================================
-    def raw_to_epochs(self) :
-        """Open the epoching utility window, and get the new epochs"""
-        return 0
 
     #=====================================================================
     # Error handling window

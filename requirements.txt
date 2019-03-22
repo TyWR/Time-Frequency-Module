@@ -1,5 +1,4 @@
-App
-pyqt5
 matplotlib == 2.2.3
 mne
 numpy
+scipy
