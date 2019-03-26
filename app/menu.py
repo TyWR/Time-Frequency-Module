@@ -2,13 +2,15 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from mne.channels import read_montage
+import matplotlib.pyplot as plt
+
 from backend.epochs_psd import EpochsPSD
 from backend.raw_psd import RawPSD
 from app.epochs_psd import EpochsPSDWindow
 from app.raw_psd import RawPSDWindow
+from app.epoching import EpochingWindow
 from app.menu_UI import Ui_MenuWindow
-import matplotlib.pyplot as plt
-import _thread
+
 
 """
 File containing the main window class, ie the window for selectionning
@@ -47,6 +49,7 @@ class MenuWindow(QMainWindow) :
         self.ui.lineEdit.editingFinished.connect(self.path_change)
         self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_change)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
+        self.ui.epochingButton.clicked.connect(self.open_epoching_window)
 
     #---------------------------------------------------------------------
     def set_boxes(self) :
@@ -286,6 +289,16 @@ class MenuWindow(QMainWindow) :
         except ValueError :
                 self.show_error("Format of parameters must be param_id = value")
         self.psdParams = dic
+
+    #=====================================================================
+    #Open epoching window
+    #=====================================================================
+    def open_epoching_window(self) :
+        print("HELLO")
+        window = EpochingWindow()
+        window.ui.rawLine.setText(self.filePath)
+        window.exec_()
+
 
     #=====================================================================
     # Error handling window
