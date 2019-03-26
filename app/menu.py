@@ -1,15 +1,8 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from mne.channels import read_montage
-import matplotlib.pyplot as plt
 
-from backend.epochs_psd import EpochsPSD
-from backend.raw_psd import RawPSD
-
-from app.epochs_psd import EpochsPSDWindow
-from app.raw_psd import RawPSDWindow
-from app.epoching import EpochingWindow
+from matplotlib.pyplot import close, show
 from app.menu_UI import Ui_MenuWindow
 
 """
@@ -27,14 +20,13 @@ class MenuWindow(QMainWindow) :
         self.setup_ui()
 
     #=====================================================================
-    # Setup functions
+    # Setup and Initialization functions
     #=====================================================================
     def setup_ui(self) :
         """Setup the ui with initial values and bindings"""
         self.set_boxes()
         self.set_bindings()
         self.init_psd_parameters()
-        self.set_montage_box()
         self.filePath = ''
         self.dataType = None
 
@@ -42,22 +34,25 @@ class MenuWindow(QMainWindow) :
     def set_bindings(self) :
         """Set all the bindings"""
         self.ui.psdButton.clicked.connect(self.open_psd_visualizer)
-        self.ui.pathButton.clicked.connect(self.choose_path)
+        self.ui.pathButton.clicked.connect(self.choose_eeg_path)
         self.ui.savePsdButton.clicked.connect(self.choose_save_path)
         self.ui.plotData.clicked.connect(self.plot_data)
         self.ui.displayDataButton.clicked.connect(self.display_data_infos)
         self.ui.psdParametersButton.clicked.connect(self.choose_psd_parameters_path)
-        self.ui.lineEdit.editingFinished.connect(self.path_change)
-        self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_change)
+        self.ui.lineEdit.editingFinished.connect(self.eeg_path_changed)
+        self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_changed)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
         self.ui.epochingButton.clicked.connect(self.open_epoching_window)
         self.ui.electrodeMontage.currentTextChanged.connect(self.choose_xyz_path)
 
     #---------------------------------------------------------------------
     def set_boxes(self) :
-        """Set the values of the combo boxes"""
+        """Set the values of the combo boxes for file extension, coordinates and fourier methods"""
         for extension in ['.fif','-epo.fif','.sef', '.ep', '.eph'] :
             self.ui.chooseFileType.addItem(extension)
+
+        for method in ['No coordinates', 'Use xyz file', 'standard_1005', 'standard_1020'] :
+            self.ui.electrodeMontage.addItem(method)
 
         self.ui.psdMethod.addItem('Welch')
         self.ui.psdMethod.addItem('Multitaper')
@@ -65,25 +60,25 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def init_psd_parameters(self) :
         """Set the parameters in the parameters text slot"""
-        text = "fmin=0\nfmax=40\ntmin=Default\ntmax=Default\n"
+        text = "fmin=0\nfmax=100\ntmin=Default\ntmax=Default\n"
         if self.ui.psdMethod.currentText() == 'Welch' :
             text = text + "n_fft=256\nn_per_seg=256\nn_overlap =0"
         if self.ui.psdMethod.currentText() == 'Multitaper' :
             text = text + "bandwidth=4"
         self.ui.psdParametersText.setText(text)
 
-    #---------------------------------------------------------------------
-    def set_montage_box(self) :
-        """Choose the naming conventions used for electrodes"""
-        methods = ['No coordinates', 'Use xyz file', 'standard_1005', 'standard_1020', ]
-        for method in methods :
-            self.ui.electrodeMontage.addItem(method)
-
     #=====================================================================
-    # Reading data
+    # Reading and setting up data
     #=====================================================================
     def read_data(self) :
-        """Set-up the data in mne class"""
+        """Read all the data entered by the user"""
+        self.read_eeg_data()
+        self.read_montage()
+        self.read_parameters()
+
+    #---------------------------------------------------------------------
+    def read_eeg_data(self) :
+        """Read the eeg data depending on the file"""
         extension = self.ui.chooseFileType.currentText()
         if extension == '.fif' :
             from mne.io import read_raw_fif
@@ -110,17 +105,32 @@ class MenuWindow(QMainWindow) :
             self.dataType = 'raw'
             self.eeg_data = read_sef(self.filePath)
 
-        self.set_montage()
-
     #---------------------------------------------------------------------
-    def set_montage(self) :
+    def read_montage(self) :
+        """Read the montage data"""
         montage = self.ui.electrodeMontage.currentText()
         if montage == 'Use xyz file' :
             from backend.util import xyz_to_montage
             montage = xyz_to_montage(self.ui.xyzPath.text())
             self.eeg_data.set_montage(montage)
         elif montage != 'No coordinates' :
+            from mne.channels import read_montage
             self.eeg_data.set_montage(read_montage(montage))
+
+    #---------------------------------------------------------------------
+    def read_parameters(self) :
+        """Read parameters from txt file and sets it up in psdParams"""
+        text = self.ui.psdParametersText.toPlainText()
+        params = text.replace(" ", "").split('\n')
+        dic = {}
+        try :
+            for param in params :
+                param, val = param.replace(" ", "").split("=")
+                if val == 'Default'or val == 'None' : dic[param] = None
+                else : dic[param] = float(val)
+        except ValueError :
+                self.show_error("Format of parameters must be param_id = value")
+        self.psdParams = dic
 
     #---------------------------------------------------------------------
     def plot_data(self) :
@@ -132,9 +142,151 @@ class MenuWindow(QMainWindow) :
         except (ValueError) :
             self.show_error("Names of electrodes don't fit convention")
         else :
-            plt.close('all')
+            close('all')
             self.eeg_data.plot(scalings = 'auto')
-            plt.show()
+            show()
+
+    #=====================================================================
+    # Open PSD Visualizer
+    #=====================================================================
+    def open_psd_visualizer(self) :
+        """Redirect to PSD Visualize app"""
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+        else :
+            if self.dataType == 'epochs' :
+                self.open_epochs_psd_visualizer()
+            if self.dataType == 'raw' :
+                self.open_raw_psd_visualizer()
+
+    #---------------------------------------------------------------------
+    def init_epochs_psd(self) :
+        """Initialize the instance of EpochsPSD"""
+        from backend.epochs_psd import EpochsPSD
+
+        if self.ui.psdMethod.currentText() == 'Welch' :
+            n_fft    = int(self.psdParams.get('n_fft', 256))
+            self.psd = EpochsPSD(self.eeg_data,
+                                 fmin       = self.psdParams['fmin'],
+                                 fmax       = self.psdParams['fmax'],
+                                 tmin       = self.psdParams['tmin'],
+                                 tmax       = self.psdParams['tmax'],
+                                 method     = 'welch',
+                                 n_fft      = n_fft,
+                                 n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
+                                 n_overlap  = int(self.psdParams.get('n_overlap', 0)))
+
+        if self.ui.psdMethod.currentText() == 'Multitaper' :
+            self.psd = EpochsPSD(self.eeg_data,
+                                 fmin       = self.psdParams['fmin'],
+                                 fmax       = self.psdParams['fmax'],
+                                 tmin       = self.psdParams['tmin'],
+                                 tmax       = self.psdParams['tmax'],
+                                 method     = 'multitaper',
+                                 bandwidth  = int(self.psdParams.get('bandwidth', 4)))
+
+    #---------------------------------------------------------------------
+    def init_raw_psd(self) :
+        """Initialize the instance of RawPSD"""
+        from backend.raw_psd import RawPSD
+
+        if self.ui.psdMethod.currentText() == 'Welch' :
+            n_fft    = int(self.psdParams.get('n_fft', 256))
+            self.psd = RawPSD(self.eeg_data,
+                              fmin       = self.psdParams['fmin'],
+                              fmax       = self.psdParams['fmax'],
+                              tmin       = self.psdParams['tmin'],
+                              tmax       = self.psdParams['tmax'],
+                              method     = 'welch',
+                              n_fft      = n_fft,
+                              n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
+                              n_overlap  = int(self.psdParams.get('n_overlap', 0)))
+
+        if self.ui.psdMethod.currentText() == 'Multitaper' :
+            self.psd = RawPSD(self.eeg_data,
+                              fmin       = self.psdParams['fmin'],
+                              fmax       = self.psdParams['fmax'],
+                              tmin       = self.psdParams['tmin'],
+                              tmax       = self.psdParams['tmax'],
+                              method     = 'multitaper',
+                              bandwidth  = int(self.psdParams.get('bandwidth', 4)))
+
+    #---------------------------------------------------------------------
+    def open_epochs_psd_visualizer(self) :
+        """Open PSD visualizer for epochs data"""
+        from app.epochs_psd import EpochsPSDWindow
+
+        self.init_epochs_psd()
+        psdVisualizer = EpochsPSDWindow(self.psd)
+        psdVisualizer.show()
+
+    #---------------------------------------------------------------------
+    def open_raw_psd_visualizer(self) :
+        """Open PSD Visualizer for raw type data"""
+        from app.raw_psd import RawPSDWindow
+
+        self.init_raw_psd()
+        psdVisualizer = RawPSDWindow(self.psd)
+        psdVisualizer.show()
+
+    #=====================================================================
+    # Open epoching window
+    #=====================================================================
+    def open_epoching_window(self) :
+        from app.epoching import EpochingWindow
+
+        window = EpochingWindow()
+        window.ui.rawLine.setText(self.filePath)
+        window.exec_()
+
+    #=====================================================================
+    #Choosing different path
+    #=====================================================================
+    def choose_eeg_path(self) :
+        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Python Files (*.py)")
+        self.ui.lineEdit.setText(self.filePath)
+
+    #---------------------------------------------------------------------
+    def eeg_path_changed(self) :
+        self.filePath = self.ui.lineEdit.text()
+
+    #---------------------------------------------------------------------
+    def choose_psd_parameters_path(self) :
+        self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
+        self.ui.psdParametersLine.setText(self.psdParametersPath)
+        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+
+    #---------------------------------------------------------------------
+    def psd_parameters_path_changed(self) :
+        self.psdParametersPath = self.ui.psdParametersLine.text()
+        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+
+    #---------------------------------------------------------------------
+    def choose_xyz_path(self) :
+        if self.ui.electrodeMontage.currentText() == 'Use xyz file' :
+            self.xyzPath, _ = QFileDialog.getOpenFileName(self,"Choose .xyz file", "")
+            self.ui.xyzPath.setText(self.xyzPath)
+
+    #=====================================================================
+    #Choosing save file path
+    #=====================================================================
+    def choose_save_path(self) :
+        self.savepath, _ = QFileDialog.getSaveFileName(self)
+        try :
+            self.read_data()
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+        else :
+            if self.dataType == 'epochs' : self.init_epochs_psd()
+            if self.dataType == 'raw'    : self.init_raw_psd()
+            self.save_matrix_txt()
+
+    #---------------------------------------------------------------------
+    def save_matrix_txt(self) :
+        """Save the matrix containing the PSD"""
+        self.psd.save_matrix_txt(self.savepath)
 
     #=====================================================================
     # Display data informations
@@ -160,165 +312,7 @@ class MenuWindow(QMainWindow) :
         return infos
 
     #=====================================================================
-    # Open PSD Visualizer
-    #=====================================================================
-    def open_psd_visualizer(self) :
-        """Redirect to PSD Visualize app"""
-        try :
-            self.read_data()
-        except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
-        else :
-            self.get_parameters()
-            if self.dataType == 'epochs' :
-                self.open_epochs_psd_visualizer()
-            if self.dataType == 'raw' :
-                self.open_raw_psd_visualizer()
-
-    #---------------------------------------------------------------------
-    def init_epochs_psd(self) :
-        """Initialize the instance of EpochsPSD"""
-        if self.ui.psdMethod.currentText() == 'Welch' :
-            n_fft    = int(self.psdParams.get('n_fft', 256))
-            self.psd = EpochsPSD(self.eeg_data,
-                                 fmin       = self.psdParams['fmin'],
-                                 fmax       = self.psdParams['fmax'],
-                                 tmin       = self.psdParams['tmin'],
-                                 tmax       = self.psdParams['tmax'],
-                                 method     = 'welch',
-                                 n_fft      = n_fft,
-                                 n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
-                                 n_overlap  = int(self.psdParams.get('n_overlap', 0)))
-
-        if self.ui.psdMethod.currentText() == 'Multitaper' :
-            self.psd = EpochsPSD(self.eeg_data,
-                                 fmin       = self.psdParams['fmin'],
-                                 fmax       = self.psdParams['fmax'],
-                                 tmin       = self.psdParams['tmin'],
-                                 tmax       = self.psdParams['tmax'],
-                                 method     = 'multitaper',
-                                 bandwidth  = int(self.psdParams.get('bandwidth', 4)))
-
-    #---------------------------------------------------------------------
-    def open_epochs_psd_visualizer(self) :
-        """Open PSD visualizer for epochs data"""
-        self.init_epochs_psd()
-        psdVisualizer = EpochsPSDWindow(self.psd)
-        psdVisualizer.show()
-
-    #---------------------------------------------------------------------
-    def init_raw_psd(self) :
-        """Initialize the instance of RawPSD"""
-        if self.ui.psdMethod.currentText() == 'Welch' :
-            n_fft    = int(self.psdParams.get('n_fft', 256))
-            self.psd = RawPSD(self.eeg_data,
-                              fmin       = self.psdParams['fmin'],
-                              fmax       = self.psdParams['fmax'],
-                              tmin       = self.psdParams['tmin'],
-                              tmax       = self.psdParams['tmax'],
-                              method     = 'welch',
-                              n_fft      = n_fft,
-                              n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
-                              n_overlap  = int(self.psdParams.get('n_overlap', 0)))
-
-        if self.ui.psdMethod.currentText() == 'Multitaper' :
-            self.psd = RawPSD(self.eeg_data,
-                              fmin       = self.psdParams['fmin'],
-                              fmax       = self.psdParams['fmax'],
-                              tmin       = self.psdParams['tmin'],
-                              tmax       = self.psdParams['tmax'],
-                              method     = 'multitaper',
-                              bandwidth  = int(self.psdParams.get('bandwidth', 4)))
-
-    #---------------------------------------------------------------------
-    def open_raw_psd_visualizer(self) :
-        """Open PSD Visualizer for raw type data"""
-        self.init_raw_psd()
-        psdVisualizer = RawPSDWindow(self.psd)
-        psdVisualizer.show()
-
-    #=====================================================================
-    #Choosing main file path
-    #=====================================================================
-    def choose_path(self) :
-        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Python Files (*.py)")
-        self.ui.lineEdit.setText(self.filePath)
-
-    #---------------------------------------------------------------------
-    def path_change(self) :
-        self.filePath = self.ui.lineEdit.text()
-
-    #=====================================================================
-    #Choosing parameters file path
-    #=====================================================================
-    def choose_psd_parameters_path(self) :
-        self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
-        self.ui.psdParametersLine.setText(self.psdParametersPath)
-        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
-
-    #---------------------------------------------------------------------
-    def psd_parameters_path_change(self) :
-        self.psdParametersPath = self.ui.psdParametersLine.text()
-        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
-
-    #=====================================================================
-    #Choosing xyz file path
-    #=====================================================================
-    def choose_xyz_path(self) :
-        if self.ui.electrodeMontage.currentText() == 'Use xyz file' :
-            self.xyzPath, _ = QFileDialog.getOpenFileName(self,"Choose .xyz file", "")
-            self.ui.xyzPath.setText(self.xyzPath)
-
-    #=====================================================================
-    #Choosing save file path
-    #=====================================================================
-    def choose_save_path(self) :
-        self.savepath, _ = QFileDialog.getSaveFileName(self)
-        try :
-            self.read_data()
-        except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
-        else :
-            self.get_parameters()
-            if self.dataType == 'epochs' : self.init_epochs_psd()
-            if self.dataType == 'raw'    : self.init_raw_psd()
-            self.save_matrix_txt()
-
-    #---------------------------------------------------------------------
-    def save_matrix_txt(self) :
-        """Save the matrix containing the PSD"""
-        self.psd.save_matrix_txt(self.savepath)
-
-    #=====================================================================
-    #Read parameters
-    #=====================================================================
-    def get_parameters(self) :
-        """Get parameters from txt file"""
-        # Need to handle all exceptions ...
-        text = self.ui.psdParametersText.toPlainText()
-        params = text.replace(" ", "").split('\n')
-        dic = {}
-        try :
-            for param in params :
-                param, val = param.replace(" ", "").split("=")
-                if val == 'Default'or val == 'None' : dic[param] = None
-                else : dic[param] = float(val)
-        except ValueError :
-                self.show_error("Format of parameters must be param_id = value")
-        self.psdParams = dic
-
-    #=====================================================================
-    #Open epoching window
-    #=====================================================================
-    def open_epoching_window(self) :
-        print("HELLO")
-        window = EpochingWindow()
-        window.ui.rawLine.setText(self.filePath)
-        window.exec_()
-
-
-    #=====================================================================
-    # Error handling window
+    # Pop up windows for error and informations
     #=====================================================================
     def show_error(self, msg) :
         """Display window with an error message"""
@@ -330,9 +324,7 @@ class MenuWindow(QMainWindow) :
         error.setStandardButtons(QMessageBox.Ok)
         error.exec_()
 
-    #=====================================================================
-    # Pop up window for informations
-    #=====================================================================
+    #---------------------------------------------------------------------
     def show_infos(self, msg) :
         """Display a window with an information message"""
         info = QMessageBox()
