@@ -6,16 +6,17 @@ import matplotlib.pyplot as plt
 
 from backend.epochs_psd import EpochsPSD
 from backend.raw_psd import RawPSD
+
 from app.epochs_psd import EpochsPSDWindow
 from app.raw_psd import RawPSDWindow
 from app.epoching import EpochingWindow
 from app.menu_UI import Ui_MenuWindow
 
-
 """
 File containing the main window class, ie the window for selectionning
 the path of the dataset, choose the parameters for computing the PSD etc.
 """
+
 class MenuWindow(QMainWindow) :
     def __init__(self) :
         super(MenuWindow, self).__init__(parent = None)
@@ -50,6 +51,7 @@ class MenuWindow(QMainWindow) :
         self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_change)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
         self.ui.epochingButton.clicked.connect(self.open_epoching_window)
+        self.ui.electrodeMontage.currentTextChanged.connect(self.choose_xyz_path)
 
     #---------------------------------------------------------------------
     def set_boxes(self) :
@@ -73,8 +75,7 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def set_montage_box(self) :
         """Choose the naming conventions used for electrodes"""
-        methods = ['No coordinates', 'standard_1005', 'standard_1020', 'standard_alphabetic',
-                    'standard_post', 'fixedstandard_prefixed', 'standard_primed']
+        methods = ['No coordinates', 'Use xyz file', 'standard_1005', 'standard_1020', ]
         for method in methods :
             self.ui.electrodeMontage.addItem(method)
 
@@ -109,8 +110,16 @@ class MenuWindow(QMainWindow) :
             self.dataType = 'raw'
             self.eeg_data = read_sef(self.filePath)
 
+        self.set_montage()
+
+    #---------------------------------------------------------------------
+    def set_montage(self) :
         montage = self.ui.electrodeMontage.currentText()
-        if montage != 'No coordinates' :
+        if montage == 'Use xyz file' :
+            from backend.util import xyz_to_montage
+            montage = xyz_to_montage(self.ui.xyzPath.text())
+            self.eeg_data.set_montage(montage)
+        elif montage != 'No coordinates' :
             self.eeg_data.set_montage(read_montage(montage))
 
     #---------------------------------------------------------------------
@@ -253,6 +262,14 @@ class MenuWindow(QMainWindow) :
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
 
     #=====================================================================
+    #Choosing xyz file path
+    #=====================================================================
+    def choose_xyz_path(self) :
+        if self.ui.electrodeMontage.currentText() == 'Use xyz file' :
+            self.xyzPath, _ = QFileDialog.getOpenFileName(self,"Choose .xyz file", "")
+            self.ui.xyzPath.setText(self.xyzPath)
+
+    #=====================================================================
     #Choosing save file path
     #=====================================================================
     def choose_save_path(self) :
@@ -304,6 +321,7 @@ class MenuWindow(QMainWindow) :
     # Error handling window
     #=====================================================================
     def show_error(self, msg) :
+        """Display window with an error message"""
         error = QMessageBox()
         error.setIcon(QMessageBox.Warning)
         error.setText("Error")
@@ -316,6 +334,7 @@ class MenuWindow(QMainWindow) :
     # Pop up window for informations
     #=====================================================================
     def show_infos(self, msg) :
+        """Display a window with an information message"""
         info = QMessageBox()
         info.setBaseSize(QSize(600, 120))
         info.setIcon(QMessageBox.Information)
