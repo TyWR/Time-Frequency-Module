@@ -41,6 +41,7 @@ class MenuWindow(QMainWindow) :
         self.ui.plotData.clicked.connect(self.plot_data)
         self.ui.displayDataButton.clicked.connect(self.display_data_infos)
         self.ui.psdParametersButton.clicked.connect(self.choose_psd_parameters_path)
+        self.ui.tfrParametersButton.clicked.connect(self.choose_tfr_parameters_path)
         self.ui.lineEdit.editingFinished.connect(self.eeg_path_changed)
         self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_changed)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
@@ -274,7 +275,7 @@ class MenuWindow(QMainWindow) :
         """Init list with picks"""
         picks = self.params['picked_channels']
         if picks is None :
-            return None 
+            return None
         elif type(picks) == list :
             return [int(ch) for ch in picks]
         else :
@@ -329,6 +330,13 @@ class MenuWindow(QMainWindow) :
         self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+
+    #---------------------------------------------------------------------
+    def choose_tfr_parameters_path(self) :
+        """Open window for choosing TFR parameters path"""
+        self.tfrParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
+        self.ui.tfrParametersLine.setText(self.tfrParametersPath)
+        self.ui.tfrParametersText.setText(open(self.tfrParametersPath, 'r').read())
 
     #---------------------------------------------------------------------
     def psd_parameters_path_changed(self) :

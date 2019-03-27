@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=PSD Visualizer
+Icon=/home/tvivier/Python/Time-Frequency-Module/media/logo.svg
+Path=/home/tvivier/Python/Time-Frequency-Module
+Exec=python3 ./run_app.py
+Terminal=false
+Type=Application
+Name[en_US]=Frequency Visualizer
