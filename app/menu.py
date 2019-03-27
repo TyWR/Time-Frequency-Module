@@ -27,6 +27,7 @@ class MenuWindow(QMainWindow) :
         self.set_boxes()
         self.set_bindings()
         self.init_psd_parameters()
+        self.init_tfr_parameters()
         self.filePath = ''
         self.dataType = None
 
@@ -34,6 +35,7 @@ class MenuWindow(QMainWindow) :
     def set_bindings(self) :
         """Set all the bindings"""
         self.ui.psdButton.clicked.connect(self.open_psd_visualizer)
+        self.ui.tfrButton.clicked.connect(self.open_tfr_visualizer)
         self.ui.pathButton.clicked.connect(self.choose_eeg_path)
         self.ui.savePsdButton.clicked.connect(self.choose_save_path)
         self.ui.plotData.clicked.connect(self.plot_data)
@@ -42,6 +44,7 @@ class MenuWindow(QMainWindow) :
         self.ui.lineEdit.editingFinished.connect(self.eeg_path_changed)
         self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_changed)
         self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
+        self.ui.tfrMethodBox.currentIndexChanged.connect(self.init_tfr_parameters)
         self.ui.epochingButton.clicked.connect(self.open_epoching_window)
         self.ui.electrodeMontage.currentTextChanged.connect(self.choose_xyz_path)
 
@@ -54,27 +57,41 @@ class MenuWindow(QMainWindow) :
         for method in ['No coordinates', 'Use xyz file', 'standard_1005', 'standard_1020'] :
             self.ui.electrodeMontage.addItem(method)
 
-        self.ui.psdMethod.addItem('Welch')
-        self.ui.psdMethod.addItem('Multitaper')
+        self.ui.psdMethod.addItem('multitaper')
+        self.ui.psdMethod.addItem('welch')
+        self.ui.tfrMethodBox.addItem('multitaper')
+        self.ui.tfrMethodBox.addItem('stockwell')
+        self.ui.tfrMethodBox.addItem('morlet')
 
     #---------------------------------------------------------------------
     def init_psd_parameters(self) :
         """Set the parameters in the parameters text slot"""
         text = "fmin=0\nfmax=100\ntmin=Default\ntmax=Default\n"
-        if self.ui.psdMethod.currentText() == 'Welch' :
+        if self.ui.psdMethod.currentText() == 'welch' :
             text = text + "n_fft=256\nn_per_seg=256\nn_overlap =0"
-        if self.ui.psdMethod.currentText() == 'Multitaper' :
+        if self.ui.psdMethod.currentText() == 'multitaper' :
             text = text + "bandwidth=4"
         self.ui.psdParametersText.setText(text)
+
+    #---------------------------------------------------------------------
+    def init_tfr_parameters(self) :
+        """Set the parameters in the parameters text slot"""
+        text = "fmin=5\nfmax=100\nfreq_step=1\nn_cycles=3\n"
+        if self.ui.tfrMethodBox.currentText() == 'multitaper' :
+            text = text + "time_bandwidth=4\n"
+        if self.ui.tfrMethodBox.currentText() == 'stockwell' :
+            text = text + "width=1\nn_fft=512\n"
+        text = text + "picked_channels=0"
+        self.ui.tfrParametersText.setText(text)
 
     #=====================================================================
     # Reading and setting up data
     #=====================================================================
-    def read_data(self) :
+    def read_data(self, tfr = False) :
         """Read all the data entered by the user"""
         self.read_eeg_data()
         self.read_montage()
-        self.read_parameters()
+        self.read_parameters(tfr=tfr)
 
     #---------------------------------------------------------------------
     def read_eeg_data(self) :
@@ -118,19 +135,28 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.set_montage(read_montage(montage))
 
     #---------------------------------------------------------------------
-    def read_parameters(self) :
-        """Read parameters from txt file and sets it up in psdParams"""
-        text = self.ui.psdParametersText.toPlainText()
+    def read_parameters(self, tfr = False) :
+        """Read parameters from txt file and sets it up in params"""
+        if tfr :
+            text = self.ui.tfrParametersText.toPlainText()
+        else :
+            text = self.ui.psdParametersText.toPlainText()
         params = text.replace(" ", "").split('\n')
         dic = {}
         try :
             for param in params :
                 param, val = param.replace(" ", "").split("=")
                 if val == 'Default'or val == 'None' : dic[param] = None
-                else : dic[param] = float(val)
+                else :
+                    val = val.split(",")
+                    if len(val) == 1 :
+                        dic[param] = float(val[0])
+                    else :
+                        dic[param] = [float(e) for e in val]
+
         except ValueError :
-                self.show_error("Format of parameters must be param_id = value")
-        self.psdParams = dic
+                self.show_error("Format of parameters must be param_id = values")
+        self.params = dic
 
     #---------------------------------------------------------------------
     def plot_data(self) :
@@ -166,52 +192,52 @@ class MenuWindow(QMainWindow) :
         """Initialize the instance of EpochsPSD"""
         from backend.epochs_psd import EpochsPSD
 
-        if self.ui.psdMethod.currentText() == 'Welch' :
-            n_fft    = int(self.psdParams.get('n_fft', 256))
+        if self.ui.psdMethod.currentText() == 'welch' :
+            n_fft    = int(self.params.get('n_fft', 256))
             self.psd = EpochsPSD(self.eeg_data,
-                                 fmin       = self.psdParams['fmin'],
-                                 fmax       = self.psdParams['fmax'],
-                                 tmin       = self.psdParams['tmin'],
-                                 tmax       = self.psdParams['tmax'],
+                                 fmin       = self.params['fmin'],
+                                 fmax       = self.params['fmax'],
+                                 tmin       = self.params['tmin'],
+                                 tmax       = self.params['tmax'],
                                  method     = 'welch',
                                  n_fft      = n_fft,
-                                 n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
-                                 n_overlap  = int(self.psdParams.get('n_overlap', 0)))
+                                 n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
+                                 n_overlap  = int(self.params.get('n_overlap', 0)))
 
-        if self.ui.psdMethod.currentText() == 'Multitaper' :
+        if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = EpochsPSD(self.eeg_data,
-                                 fmin       = self.psdParams['fmin'],
-                                 fmax       = self.psdParams['fmax'],
-                                 tmin       = self.psdParams['tmin'],
-                                 tmax       = self.psdParams['tmax'],
+                                 fmin       = self.params['fmin'],
+                                 fmax       = self.params['fmax'],
+                                 tmin       = self.params['tmin'],
+                                 tmax       = self.params['tmax'],
                                  method     = 'multitaper',
-                                 bandwidth  = int(self.psdParams.get('bandwidth', 4)))
+                                 bandwidth  = int(self.params.get('bandwidth', 4)))
 
     #---------------------------------------------------------------------
     def init_raw_psd(self) :
         """Initialize the instance of RawPSD"""
         from backend.raw_psd import RawPSD
 
-        if self.ui.psdMethod.currentText() == 'Welch' :
-            n_fft    = int(self.psdParams.get('n_fft', 256))
+        if self.ui.psdMethod.currentText() == 'welch' :
+            n_fft    = int(self.params.get('n_fft', 256))
             self.psd = RawPSD(self.eeg_data,
-                              fmin       = self.psdParams['fmin'],
-                              fmax       = self.psdParams['fmax'],
-                              tmin       = self.psdParams['tmin'],
-                              tmax       = self.psdParams['tmax'],
+                              fmin       = self.params['fmin'],
+                              fmax       = self.params['fmax'],
+                              tmin       = self.params['tmin'],
+                              tmax       = self.params['tmax'],
                               method     = 'welch',
                               n_fft      = n_fft,
-                              n_per_seg  = int(self.psdParams.get('n_per_seg', n_fft)),
-                              n_overlap  = int(self.psdParams.get('n_overlap', 0)))
+                              n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
+                              n_overlap  = int(self.params.get('n_overlap', 0)))
 
-        if self.ui.psdMethod.currentText() == 'Multitaper' :
+        if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = RawPSD(self.eeg_data,
-                              fmin       = self.psdParams['fmin'],
-                              fmax       = self.psdParams['fmax'],
-                              tmin       = self.psdParams['tmin'],
-                              tmax       = self.psdParams['tmax'],
+                              fmin       = self.params['fmin'],
+                              fmax       = self.params['fmax'],
+                              tmin       = self.params['tmin'],
+                              tmax       = self.params['tmax'],
                               method     = 'multitaper',
-                              bandwidth  = int(self.psdParams.get('bandwidth', 4)))
+                              bandwidth  = int(self.params.get('bandwidth', 4)))
 
     #---------------------------------------------------------------------
     def open_epochs_psd_visualizer(self) :
@@ -242,29 +268,73 @@ class MenuWindow(QMainWindow) :
         window.exec_()
 
     #=====================================================================
+    # Open TFR Window
+    #=====================================================================
+    def init_pick_tfr(self) :
+        """Init list with picks"""
+        picks = self.params['picked_channels']
+        if type(picks) == list :
+            return [int(ch) for ch in picks]
+        else :
+            return [int(picks)]
+
+    def init_avg_tfr(self) :
+        """Init tfr from parameters"""
+        from backend.avg_epochs_tfr import AvgEpochsTFR
+        from numpy import arange
+
+        freqs = arange(self.params['fmin'], self.params['fmax'], self.params['freq_step'])
+        n_cycles = self.params['n_cycles']
+        picks = self.init_pick_tfr()
+        self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
+                                   method         = self.ui.psdMethod.currentText(),
+                                   time_bandwidth = self.params.get('time_bandwidth', None),
+                                   n_fft          = self.params.get('n_fft', None),
+                                   width          = self.params.get('width', None),
+                                   picks          = picks)
+
+    def open_tfr_visualizer(self) :
+        """Open TFR Visualizer for epochs"""
+        from app.avg_epochs_tfr import AvgTFRWindow
+
+        try :
+            self.read_data(tfr=True)
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+        else :
+            self.init_avg_tfr()
+            psdVisualizer = AvgTFRWindow(self.avgTFR)
+            psdVisualizer.show()
+
+    #=====================================================================
     #Choosing different path
     #=====================================================================
     def choose_eeg_path(self) :
+        """Open window for choosing eeg path and updates the line"""
         self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Python Files (*.py)")
         self.ui.lineEdit.setText(self.filePath)
 
     #---------------------------------------------------------------------
     def eeg_path_changed(self) :
+        """Gets called when eeg path is changed"""
         self.filePath = self.ui.lineEdit.text()
 
     #---------------------------------------------------------------------
     def choose_psd_parameters_path(self) :
+        """Open window for choosing PSD parameters path"""
         self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
 
     #---------------------------------------------------------------------
     def psd_parameters_path_changed(self) :
+        """Gets called when PSD parameters are changed"""
         self.psdParametersPath = self.ui.psdParametersLine.text()
         self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
 
     #---------------------------------------------------------------------
     def choose_xyz_path(self) :
+        """Gets called when electrode montage box is updated"""
         if self.ui.electrodeMontage.currentText() == 'Use xyz file' :
             self.xyzPath, _ = QFileDialog.getOpenFileName(self,"Choose .xyz file", "")
             self.ui.xyzPath.setText(self.xyzPath)
@@ -273,6 +343,7 @@ class MenuWindow(QMainWindow) :
     #Choosing save file path
     #=====================================================================
     def choose_save_path(self) :
+        """Open window for choosing save path"""
         self.savepath, _ = QFileDialog.getSaveFileName(self)
         try :
             self.read_data()
@@ -317,6 +388,7 @@ class MenuWindow(QMainWindow) :
     def show_error(self, msg) :
         """Display window with an error message"""
         error = QMessageBox()
+        error.setBaseSize(QSize(800, 200))
         error.setIcon(QMessageBox.Warning)
         error.setText("Error")
         error.setInformativeText(msg)
@@ -328,7 +400,7 @@ class MenuWindow(QMainWindow) :
     def show_infos(self, msg) :
         """Display a window with an information message"""
         info = QMessageBox()
-        info.setBaseSize(QSize(600, 120))
+        info.setBaseSize(QSize(800, 200))
         info.setIcon(QMessageBox.Information)
         info.setText("Data informations")
         info.setInformativeText(msg)
