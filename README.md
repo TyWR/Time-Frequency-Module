@@ -33,7 +33,7 @@ You can easily import parameters using the import button in the app. The paramet
 
 `param_id = value` or `param_id = value1, value2, ...` if several values are expected. 
 
-Check here for a detailed description of parameters : [Click Here !](https://www.google.com)
+Check here for a detailed description of parameters : [Click Here !](https://github.com/TyWR/Time-Frequency-Module/blob/master/media/help_parameters.md)
 
 
 
