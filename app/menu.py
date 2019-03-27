@@ -146,7 +146,7 @@ class MenuWindow(QMainWindow) :
         try :
             for param in params :
                 param, val = param.replace(" ", "").split("=")
-                if val == 'Default'or val == 'None' : dic[param] = None
+                if val == 'Default' or val == 'None' : dic[param] = None
                 else :
                     val = val.split(",")
                     if len(val) == 1 :
@@ -273,11 +273,14 @@ class MenuWindow(QMainWindow) :
     def init_pick_tfr(self) :
         """Init list with picks"""
         picks = self.params['picked_channels']
-        if type(picks) == list :
+        if picks is None :
+            return None 
+        elif type(picks) == list :
             return [int(ch) for ch in picks]
         else :
             return [int(picks)]
 
+    #---------------------------------------------------------------------
     def init_avg_tfr(self) :
         """Init tfr from parameters"""
         from backend.avg_epochs_tfr import AvgEpochsTFR
@@ -293,6 +296,7 @@ class MenuWindow(QMainWindow) :
                                    width          = self.params.get('width', None),
                                    picks          = picks)
 
+    #---------------------------------------------------------------------
     def open_tfr_visualizer(self) :
         """Open TFR Visualizer for epochs"""
         from app.avg_epochs_tfr import AvgTFRWindow
