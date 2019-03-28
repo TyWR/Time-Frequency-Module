@@ -14,6 +14,8 @@ After building the docker image with the dockerfile, you can run the app with th
 
 ## Quick Tutorial 
 
+![Main Window](https://github.com/TyWR/Time-Frequency-Module/blob/master/media/main_window.png)
+
 First import your file which can be either a raw file (format `*.fif` or `*.sef`), or epoched data (format `.epo-fif`).
 
 The application also comes with an handy tool to process raw data files into epochs data with the help of a marker file (of format `*.mrk`). Just click on the `Cut into Epochs` button, and save your epochs data as a `*-epo.fif` file. 
