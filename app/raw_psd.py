@@ -30,6 +30,10 @@ class RawPSDWindow(QDialog):
     #=====================================================================
     def set_initial_values(self) :
         """Setup initial values"""
+        self.ui.frequencySlider.setMaximum(len(self.psd.freqs)-1)
+        self.ui.frequencySlider.setMinimum(0)
+        self.ui.frequencySlider.setValue(0)
+        self.ui.frequencySlider.setTickInterval(1)
         self.ui.fmin.setMaxLength(4)
         self.ui.fmin.setText(str(self.psd.freqs[0]))
         self.ui.fmax.setMaxLength(4)
@@ -47,6 +51,7 @@ class RawPSDWindow(QDialog):
         self.ui.vmax.editingFinished.connect(self.value_change)
         self.ui.selectPlotType.currentIndexChanged.connect(self.plot_change)
         self.ui.displayLog.stateChanged.connect(self.value_change)
+        self.ui.frequencySlider.valueChanged.connect(self.slider_changed)
 
     #---------------------------------------------------------------------
     def set_canvas(self) :
@@ -59,6 +64,7 @@ class RawPSDWindow(QDialog):
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.figureLayout.addWidget(self.ui.canvas)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
+
 
     #=====================================================================
     # Main Plotting function
@@ -140,6 +146,15 @@ class RawPSDWindow(QDialog):
     def plot_change(self) :
         """Update the plot type"""
         self.plotType = self.ui.selectPlotType.currentText()
+        self.value_change()
+
+    #---------------------------------------------------------------------
+    def slider_changed(self) :
+        """Get called when the slider is touched"""
+        freq_index = self.ui.frequencySlider.value()
+        freq = self.psd.freqs[freq_index]
+        self.ui.fmin.setText(str(freq))
+        self.ui.fmax.setText(str(freq))
         self.value_change()
 
     #---------------------------------------------------------------------

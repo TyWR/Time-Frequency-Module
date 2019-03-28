@@ -38,6 +38,10 @@ class EpochsPSDWindow(QDialog):
         self.ui.epochsSlider.setMinimum(0)
         self.ui.epochsSlider.setValue(0)
         self.ui.epochsSlider.setTickInterval(1)
+        self.ui.frequencySlider.setMaximum(len(self.psd.freqs) - 1)
+        self.ui.frequencySlider.setMinimum(0)
+        self.ui.frequencySlider.setValue(0)
+        self.ui.frequencySlider.setTickInterval(1)
         self.ui.fmin.setMaxLength(4)
         self.ui.fmin.setText(str(self.psd.freqs[0]))
         self.ui.fmax.setMaxLength(4)
@@ -52,6 +56,7 @@ class EpochsPSDWindow(QDialog):
     def set_bindings(self) :
         """Set Bindings"""
         self.ui.epochsSlider.valueChanged.connect(self.value_change)
+        self.ui.frequencySlider.valueChanged.connect(self.slider_changed)
         self.ui.fmin.editingFinished.connect(self.value_change)
         self.ui.fmax.editingFinished.connect(self.value_change)
         self.ui.showMean.stateChanged.connect(self.value_change)
@@ -126,6 +131,15 @@ class EpochsPSDWindow(QDialog):
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.ui.epochsSlider.value()
         self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)
+
+    #---------------------------------------------------------------------
+    def slider_changed(self) :
+        """Get called when the slider is touched"""
+        freq_index = self.ui.frequencySlider.value()
+        freq = self.psd.freqs[freq_index]
+        self.ui.fmin.setText(str(freq))
+        self.ui.fmax.setText(str(freq))
+        self.value_change()
 
     #=====================================================================
     # Adjusting the plots
