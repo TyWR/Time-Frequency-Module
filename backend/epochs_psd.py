@@ -1,17 +1,5 @@
-"""
-=================================================================================
-                                    psd
-
-This file contains several functions to compute PSD on epochs. It creates a instance
-of a class called EpochsDSP. EpochsDSP enable to handle all the psds data from all the
-different epochs. This class also comes with different methods to visualize the psds.
-=================================================================================
-"""
-from mne.time_frequency import psd_multitaper, psd_welch
-from mne.viz import plot_topomap
 import matplotlib.pyplot as plt
 from numpy import mean
-
 
 class EpochsPSD :
     """
@@ -43,22 +31,8 @@ class EpochsPSD :
 
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
-        """
-        Computes the PSD of the epochs with the correct method multitaper or welch.
+        """Computes the PSD of the epochs with the correct method multitaper or welch"""
 
-        Arguments :
-        ============
-        epochs (mne Epochs)         : Instance of epochs to be processed
-        method (str)                : 'multitaper' or 'welch'
-        n_fft (int)                 : welch parameter for n_fft                 (default = 256)
-        n_per_seg (int)             : welch parameter for number of segments    (default = n_fft)
-        n_overlap (int)             : welch parameter for overlaping            (default = 0)
-        bandwidth (float)           : multitaper parameter for bandwidth        (default = 4.)
-
-        Returns :
-        ============
-        None
-        """
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax
 
@@ -72,6 +46,8 @@ class EpochsPSD :
 
 
         if method == 'multitaper' :
+            from mne.time_frequency import psd_multitaper
+
             print("Computing Mulitaper PSD with parameter bandwidth = {} on ".format(
                   self.bandwidth))
             self.data, self.freqs = psd_multitaper(epochs,
@@ -83,6 +59,8 @@ class EpochsPSD :
                                                    bandwidth        = self.bandwidth)
 
         if method == 'welch'      :
+            from mne.time_frequency import psd_welch
+
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
                   self.n_fft, self.n_per_seg, self.n_overlap))
             self.data, self.freqs = psd_welch(epochs,
@@ -96,6 +74,8 @@ class EpochsPSD :
 
     #--------------------------------------------------------------------------------------------------------
     def __str__(self) :
+        """Return informations about the instance"""
+
         string = "PSD Computed on {} Epochs with method {}.\nParameters : \n".format(len(self.info['chs']), self.method)
         string = string + "fmin : {}Hz, fmax : {}Hz (with {} frequency points)\n".format(self.fmin, self.fmax, len(self.freqs))
         string = string + "tmin : {}s, tmax : {}s\n".format(self.tmin, self.tmax)
@@ -106,7 +86,9 @@ class EpochsPSD :
             string = string + "bandwidth : {}".format(self.bandwidth)
         return string
 
+    #--------------------------------------------------------------------------------------------------------
     def recap(self) :
+        """Returns a quick recap"""
         if self.method == 'welch' :
             string = "Computed with Welch method, n_fft : {}, n_per_seg : {}, n_overlap : {}\n".format(
                 self.n_fft, self.n_per_seg, self.n_overlap)
@@ -120,17 +102,9 @@ class EpochsPSD :
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
         is not initialized with the coordinates of the different electrodes.
-
-        Arguments :
-        ============
-        epoch_index (int)           : index of the epoch in epochs
-        freq_index  (int)           : index of the frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
+        from mne.viz import plot_topomap
+
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
@@ -144,20 +118,9 @@ class EpochsPSD :
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
         , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
         the class is not initialized with the coordinates of the different electrodes.
-
-        Arguments :
-        ============
-        epoch_index    (int)        : index of the epoch in epochs
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
+        from mne.viz import plot_topomap
+
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
@@ -173,20 +136,9 @@ class EpochsPSD :
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
         return an error if the class is not initialized with the coordinates of the different
         electrodes.
-
-        Arguments :
-        ============
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
+        from mne.viz import plot_topomap
+
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
@@ -203,19 +155,6 @@ class EpochsPSD :
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
         return an error if the class is not initialized with the coordinates of the different
         electrodes.
-
-        Arguments :
-        ============
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
@@ -231,19 +170,6 @@ class EpochsPSD :
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
         return an error if the class is not initialized with the coordinates of the different
         electrodes.
-
-        Arguments :
-        ============
-        epoch_index    (int)        : index if the epoch to display
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = self.data[epoch_index, :, freq_index_min : freq_index_max]
@@ -257,18 +183,6 @@ class EpochsPSD :
         """
         Plot a single PSD corresponding to epoch_index and channel_index, between the values
         corresponding to freq_index_max and freq_index_min.
-
-        Arguments :
-        ============
-        epoch_index    (int)        : index if the epoch to display
-        channel_index  (int)        : index of the channel to display
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         psd = self.data[epoch_index, channel_index, freq_index_min : freq_index_max]
         if axes is not None :
@@ -281,17 +195,6 @@ class EpochsPSD :
         """
         Plot a single PSD averaged over epochs and corresponding to channel_index, between
         the values corresponding to freq_index_max and freq_index_min.
-
-        Arguments :
-        ============
-        channel_index  (int)        : index of the channel to display
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         psd = mean(self.data[:, channel_index, freq_index_min : freq_index_max], axis = 0)
         if axes is not None :

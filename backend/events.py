@@ -1,10 +1,24 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mne import Epochs
+
 class Events :
     """
     Events class for handling several events in provenance from an .mrk file
+
+    Attributes :
+    ============
+    dic        (dic.)           : Dictionnary containing events ({label : [(begin, end), ...]})
+
+    Methods :
+    ============
+    __init__                    : Sets up a dictionary with the event names and occurences
+    plot                        : Plot on a new figure the events, with correct axes
+    get_labels                  : Returns the labels of the events
+    get_events                  : Returns the events corresponding to a label
+    mne_events                  : Returns the events in a mne-format corresponding to a label
+    compute_epochs              : Computes epochs from a raw file
     """
+
     def __init__(self, path, type = 'mrk') :
         """Init mrk values in a dictionnary"""
         stim = np.loadtxt(path, skiprows = 1, usecols = (0,1), dtype = np.dtype(int))
@@ -54,4 +68,5 @@ class Events :
         return np.array(events, dtype = np.dtype(int))
 
     def compute_epochs(self, label, raw, tmin, tmax) :
+        from mne import Epochs
         return Epochs(raw, self.mne_events(label), tmin = tmin, tmax = tmax, preload = True)

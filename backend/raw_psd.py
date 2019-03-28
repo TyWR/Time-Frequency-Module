@@ -1,35 +1,33 @@
-"""
-=================================================================================
-                                    psd
-
-This file contains several functions to compute PSD on raw file. It creates a instance
-of a class called EpochsDSP. EpochsDSP enable to handle all the psds data from all the
-different epochs. This class also comes with different methods to visualize the psds.
-=================================================================================
-"""
-from mne.time_frequency import psd_multitaper, psd_welch
-from mne.viz import plot_topomap
 import matplotlib.pyplot as plt
-from numpy import mean
 
 class RawPSD :
+        """
+        This class contains the PSD of a set of Epochs. It stores the data of the psds of
+        each epoch. The psds are calculated with the Library mne.
+
+        Attributes :
+        ============
+        fmin        (float)         : frequency limit
+        fmax        (float)         : frequency limit
+        tmin        (float)         : lower time bound for each epoch
+        tmax        (float)         : higher time bound for each epoch
+        info        (mne Infos)     : info of the epochs
+        method      (str)           : method used for PSD (multitaper or welch)
+        data        (numpy arr.)    : dataset with all the psds data (n_epochs, n_channels, n_freqs)
+        freqs       (arr.)          : list containing the frequencies of the psds
+
+        Methods :
+        ============
+        __init__                    : Compute all the PSD of each epoch
+        plot_topomap                : Plot the map of the power for a given frequency and epoch
+        plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
+        plot_matrix                 : Plot the raw matrix
+        plot_single_psd             : Plot the PSD for a given epoch and channel
+        """
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, raw, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
         """
         Computes the PSD of the raw file with the correct method multitaper or welch.
-
-        Arguments :
-        ============
-        raw (mne Raw)               : Instance of Raw to be processed
-        method (str)                : 'multitaper' or 'welch'
-        n_fft (int)                 : welch parameter for n_fft                 (default = 256)
-        n_per_seg (int)             : welch parameter for number of segments    (default = n_fft)
-        n_overlap (int)             : welch parameter for overlaping            (default = 0)
-        bandwidth (float)           : multitaper parameter for bandwidth        (default = 4.)
-
-        Returns :
-        ============
-        None
         """
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax
@@ -44,6 +42,8 @@ class RawPSD :
 
 
         if method == 'multitaper' :
+            from mne.time_frequency import psd_multitaper
+
             print("Computing Mulitaper PSD with parameter bandwidth = {}".format(self.bandwidth))
             self.data, self.freqs = psd_multitaper(raw,
                                                    fmin             = fmin,
@@ -54,6 +54,8 @@ class RawPSD :
                                                    bandwidth        = self.bandwidth)
 
         if method == 'welch'      :
+            from mne.time_frequency import psd_welch
+
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
                   self.n_fft, self.n_per_seg, self.n_overlap))
             self.data, self.freqs = psd_welch(raw,
@@ -71,17 +73,9 @@ class RawPSD :
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
         is not initialized with the coordinates of the different electrodes.
-
-        Arguments :
-        ============
-        freq_index (int)            : index of the frequency in self.freqs
-        axes (axe)                  : Instance of matplotlib Axes
-        show_names (bool)           : show names on topomap (needs names in file)
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
+        from mne.viz import plot_topomap
+
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
@@ -95,20 +89,10 @@ class RawPSD :
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
         , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
         the class is not initialized with the coordinates of the different electrodes.
-
-        Arguments :
-        ============
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-        show_names     (bool)       : show names on topomap (needs names in file)
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
+        from mne.viz import plot_topomap
+        from numpy import mean
+
         # Handling error if no coordinates are found
         if self.info['chs'][0]['loc'] is None :
             raise ValueError("No locations available for this dataset")
@@ -124,18 +108,6 @@ class RawPSD :
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
         return an error if the class is not initialized with the coordinates of the different
         electrodes.
-
-        Arguments :
-        ============
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-        vmin           (float)      : Maximum value of power to display
-        vmax           (float)      : Minimum value of power to display
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[0] + 1, 1]
         mat = self.data[:, freq_index_min : freq_index_max]
@@ -149,17 +121,6 @@ class RawPSD :
         """
         Plot a single PSD corresponding channel_index, between the values corresponding
         to freq_index_max and freq_index_min.
-
-        Arguments :
-        ============
-        channel_index  (int)        : index of the channel to display
-        freq_index_max (int)        : index of the min frequency in self.freqs
-        freq_index_min (int)        : index of the max frequency in self.freqs
-        axes           (axe)        : Instance of matplotlib Axes
-
-        Returns :
-        ============
-        Instance of Matplotlib.Image
         """
         psd = self.data[channel_index, freq_index_min : freq_index_max]
         if axes is not None :
@@ -167,7 +128,7 @@ class RawPSD :
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
 
-
+    #--------------------------------------------------------------------------------------------------------
     def save_matrix_txt(self, path, freq_index_min = 0, freq_index_max = -1) :
         """
         Save the entire matrix as a raw txt-file containing the data of the matrix

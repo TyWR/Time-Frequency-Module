@@ -1,5 +1,13 @@
+"""
+=================================================================================
+                                    read
+
+This file contains several functions to read different types of files.
+=================================================================================
+"""
+
 def xyz_to_montage(path) :
-    """Convert xyz positions to a mne montage type"""
+    """Reads and convert xyz positions to a mne montage type"""
     from mne.channels import Montage
     import numpy as np
 

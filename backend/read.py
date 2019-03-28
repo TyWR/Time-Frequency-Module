@@ -1,11 +1,4 @@
-"""
-Module contenant les fonctions suivantes, destinées à lire pour MNE différents types de fichier :
-"""
-from mne.io import RawArray
-from mne import create_info
 import numpy as np
-import struct
-import re
 
 def read_ep(path, **kwargs) :
     """
@@ -13,15 +6,21 @@ def read_ep(path, **kwargs) :
 
     Arguments :
     ============
-    path (str)                      : datapath of the .ep file
-    ch_names (array(str)), , opt.   : names of the channels (default EEG(number))
-    sfreq (float), , opt.           : sampling frequency
-    montage (mne Montage), opt.     : montage containing coordinates of the channels
+    path : string
+        Datapath of the .ep file
+    ch_names : array[str], Opt.
+        Names of the channels (default EEG(number))
+    sfreq : float, Opt.
+        Sampling frequency
+    montage : Montage class instance, Opt.
+        Montage containing coordinates of the channels
 
     Returns :
     ============
     Instance of mne.io.Raw
     """
+    from mne.io import RawArray
+    from mne import create_info
 
     data       = np.loadtxt(path, unpack = True)
     n_channels = data.shape[0]
@@ -54,15 +53,22 @@ def read_eph(path, **kwargs) :
 
     Arguments :
     ============
-    path (str)                      : datapath of the .ep file
-    ch_names (array[str]), opt.     : names of the channels (default EEG(number))
-    sfreq (float), opt.             : sampling frequency
-    montage (mne Montage), opt.     : montage containing coordinates of the channels
+    path : string
+        Datapath of the .ep file
+    ch_names : array[str], Opt.
+        Names of the channels (default EEG(number))
+    sfreq : float, Opt.
+        Sampling frequency
+    montage : Montage class instance, Opt.
+        Montage containing coordinates of the channels
 
     Returns :
     ============
     Instance of mne.io.Raw
     """
+    from mne.io import RawArray
+    from mne import create_info
+
     # Read parameters from header
     with open(path, 'r') as file:
         n_channels, n_times, sfreq = file.readline().strip('\n').split(' ')
@@ -95,13 +101,19 @@ def read_sef(path, montage = None) :
 
     Arguments :
     ============
-    path (str)                      : datapath of the .ep file
-    montage (mne Montage), opt.     : montage containing coordinates of the channels
+    path : string
+        Datapath of the .ep file
+    montage : Montage class instance, Opt.
+        Montage containing coordinates of the channels
 
     Returns :
     ============
     Instance of mne.io.Raw
     """
+    from mne.io import RawArray
+    from mne import create_info
+    import struct
+    import re
 
     f = open(path, 'rb')
     #   Read fixed part of the header
@@ -129,5 +141,5 @@ def read_sef(path, montage = None) :
     data = np.reshape(buffer, (num_time_frames, n_channels))
 
     ch_types = ['eeg' for i in range(n_channels)]
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types)
+    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
     return RawArray(np.transpose(data), infos)
