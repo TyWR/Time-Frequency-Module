@@ -122,7 +122,7 @@ class EpochsPSDWindow(QDialog):
         self.log = self.ui.displayLog.checkState()
         self.vmin = 0
         if self.log : self.vmin = None
-        if self.vmax == 0 : self.vmax = None
+        if self.vmax == 0 and not self.log : self.vmax = None
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         epoch_index = self.ui.epochsSlider.value()
         self.plot_psd(epoch_index, self.f_index_min, self.f_index_max, self.vmax)

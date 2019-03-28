@@ -64,6 +64,7 @@ class EpochingWindow(QDialog):
     def choose_raw_path(self) :
         self.rawPath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Raw Data (*.fif, *.sef)")
         self.ui.rawLine.setText(self.rawPath)
+        self.ui.mrkLine.setText(self.rawPath + '.mrk')
 
     def choose_mrk_path(self) :
         self.mrkPath, _ = QFileDialog.getOpenFileName(self,"Choose markers path", "mrk files (*.mrk)")

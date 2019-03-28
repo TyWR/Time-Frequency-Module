@@ -151,7 +151,7 @@ class RawPSDWindow(QDialog):
         self.log = self.ui.displayLog.checkState()
         self.vmin = 0
         if self.log : self.vmin = None
-        if self.vmax == 0 : self.vmax = None
+        if self.vmax == 0 and not self.log : self.vmax = None
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         self.plot_psd(self.f_index_min, self.f_index_max, self.vmax)
 

@@ -82,7 +82,7 @@ class MenuWindow(QMainWindow) :
             text = text + "time_bandwidth=4\n"
         if self.ui.tfrMethodBox.currentText() == 'stockwell' :
             text = text + "width=1\nn_fft=512\n"
-        text = text + "picked_channels=1"
+        text = text + "picked_channels=1\npicked_channels_names=None"
         self.ui.tfrParametersText.setText(text)
 
     #=====================================================================
@@ -153,7 +153,7 @@ class MenuWindow(QMainWindow) :
                     if len(val) == 1 :
                         dic[param] = float(val[0])
                     else :
-                        dic[param] = [float(e) for e in val]
+                        dic[param] = [e for e in val]
 
         except ValueError :
                 self.show_error("Format of parameters must be param_id = values")
@@ -278,11 +278,11 @@ class MenuWindow(QMainWindow) :
         if picks is None :
             picks = self.params.get('picked_channels_names', None)
             if picks is not None and type(picks) == list :
-                return [self.eeg_data.info['ch_names'].index(name)-1 for name in picks]
+                return [self.eeg_data.info['ch_names'].index(name)+1 for name in picks]
             elif picks is None :
                 return None
             else :
-                return self.eeg_data.info['ch_names'].index(str(picks))-1
+                return [self.eeg_data.info['ch_names'].index(str(picks))+1]
         else :
             if type(picks) == list :
                 return [int(ch) for ch in picks]

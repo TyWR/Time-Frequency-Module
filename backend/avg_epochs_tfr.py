@@ -19,7 +19,10 @@ class AvgEpochsTFR :
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, epochs, freqs, n_cycles, method = 'multitaper', time_bandwidth = 4., n_fft = 512, width = 1, picks = None) :
         """Initialize the class with an instance of EpochsTFR corresponding to the method"""
-        self.picks = [pick - 1 for pick in picks]       #To get index instead of channel names
+        if picks is not None :
+            self.picks = [pick - 1 for pick in picks]       #To get index instead of channel names
+        else :
+            self.picks = None
         self.cmap = 'inferno'
         self.info = epochs.info
 
