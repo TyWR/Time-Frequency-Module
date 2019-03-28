@@ -316,7 +316,7 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     def choose_eeg_path(self) :
         """Open window for choosing eeg path and updates the line"""
-        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Python Files (*.py)")
+        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "")
         self.ui.lineEdit.setText(self.filePath)
 
     #---------------------------------------------------------------------
@@ -329,7 +329,10 @@ class MenuWindow(QMainWindow) :
         """Open window for choosing PSD parameters path"""
         self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
-        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+        try :
+            self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+        except :
+            print("No path found")
 
     #---------------------------------------------------------------------
     def choose_tfr_parameters_path(self) :
