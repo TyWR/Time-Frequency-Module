@@ -1,5 +1,7 @@
 # Parameters Detailed Description 
 
+You can also checkout the documentation from MNE to gain knowledge about the different techniques and methods implemented. See the Time and Frequency-Domain part. [Link Here !](https://martinos.org/mne/stable/documentation.html)
+
 ## Power Spectrum Density Parameters 
 
 `fmin` : Minimum frequency (Hz)
