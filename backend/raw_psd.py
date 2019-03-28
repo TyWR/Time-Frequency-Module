@@ -2,28 +2,28 @@ import matplotlib.pyplot as plt
 from numpy import log
 
 class RawPSD :
-        """
-        This class contains the PSD of a set of Epochs. It stores the data of the psds of
-        each epoch. The psds are calculated with the Library mne.
+    """
+    This class contains the PSD of a set of Epochs. It stores the data of the psds of
+    each epoch. The psds are calculated with the Library mne.
 
-        Attributes :
-        ============
-        fmin        (float)         : frequency limit
-        fmax        (float)         : frequency limit
-        tmin        (float)         : lower time bound for each epoch
-        tmax        (float)         : higher time bound for each epoch
-        info        (mne Infos)     : info of the epochs
-        method      (str)           : method used for PSD (multitaper or welch)
-        data        (numpy arr.)    : dataset with all the psds data (n_epochs, n_channels, n_freqs)
-        freqs       (arr.)          : list containing the frequencies of the psds
+    Attributes :
+    ============
+    fmin        (float)         : frequency limit
+    fmax        (float)         : frequency limit
+    tmin        (float)         : lower time bound for each epoch
+    tmax        (float)         : higher time bound for each epoch
+    info        (mne Infos)     : info of the epochs
+    method      (str)           : method used for PSD (multitaper or welch)
+    data        (numpy arr.)    : dataset with all the psds data (n_epochs, n_channels, n_freqs)
+    freqs       (arr.)          : list containing the frequencies of the psds
 
-        Methods :
-        ============
-        __init__                    : Compute all the PSD of each epoch
-        plot_topomap                : Plot the map of the power for a given frequency and epoch
-        plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
-        plot_matrix                 : Plot the raw matrix
-        plot_single_psd             : Plot the PSD for a given epoch and channel
+    Methods :
+    ============
+    __init__                    : Compute all the PSD of each epoch
+    plot_topomap                : Plot the map of the power for a given frequency and epoch
+    plot_avg_topomap_band       : Plot the map of the power for a given band, averaged over epochs
+    plot_matrix                 : Plot the raw matrix
+    plot_single_psd             : Plot the PSD for a given epoch and channel
         """
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, raw, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :

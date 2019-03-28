@@ -46,6 +46,7 @@ class RawPSDWindow(QDialog):
         self.ui.fmax.editingFinished.connect(self.value_change)
         self.ui.vmax.editingFinished.connect(self.value_change)
         self.ui.selectPlotType.currentIndexChanged.connect(self.plot_change)
+        self.ui.displayLog.stateChanged.connect(self.value_change)
 
     #---------------------------------------------------------------------
     def set_canvas(self) :
@@ -74,7 +75,7 @@ class RawPSDWindow(QDialog):
         """Plot the topomaps"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image, _ = self.psd.plot_topomap_band(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+        self.cbar_image, _ = self.psd.plot_topomap_band(f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
         self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
@@ -84,7 +85,7 @@ class RawPSDWindow(QDialog):
         """Plot the PSD Matrix"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image = self.psd.plot_matrix(f_index_min, f_index_max, axes = ax, vmin = 0, vmax = vmax)
+        self.cbar_image = self.psd.plot_matrix(f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
         ax.axis('tight')
         ax.set_title("PSD Matrix", fontsize = 15, fontweight = 'light')
         ax.set_xlabel('Frequencies (Hz)')
@@ -111,7 +112,7 @@ class RawPSDWindow(QDialog):
         plt.close('all')
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
-        self.psd.plot_single_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax)
+        self.psd.plot_single_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax, log_display = self.log)
         ax.set_title('PSD of channel {}'.format(self.psd.info['ch_names'][channel_picked - 1]))
         self.set_ax_single_psd(ax)
 
@@ -147,6 +148,9 @@ class RawPSDWindow(QDialog):
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
         self.vmax = float(self.ui.vmax.text())
+        self.log = self.ui.displayLog.checkState()
+        self.vmin = 0
+        if self.log : self.vmin = None
         if self.vmax == 0 : self.vmax = None
         self.f_index_min, self.f_index_max = self.get_index_freq(fmin ,fmax)
         self.plot_psd(self.f_index_min, self.f_index_max, self.vmax)
