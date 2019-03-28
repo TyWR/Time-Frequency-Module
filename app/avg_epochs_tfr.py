@@ -118,7 +118,8 @@ class AvgTFRWindow(QDialog):
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
         self.cbar_image = self.avg.plot_time_freq(self.index, ax, vmax = self.vmax)
-        ax.set_title("Time-Frequency Plot - Channel {}".format(self.avg.picks[self.index]),
+        ax.set_title("Time-Frequency Plot - Channel {}".format(
+                     self.avg.info['ch_names'][self.avg.picks[self.index]]),
                      fontsize = 15, fontweight = 'light')
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Frequencies (Hz)')

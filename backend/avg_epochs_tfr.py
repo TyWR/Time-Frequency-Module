@@ -19,18 +19,25 @@ class AvgEpochsTFR :
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, epochs, freqs, n_cycles, method = 'multitaper', time_bandwidth = 4., n_fft = 512, width = 1, picks = None) :
         """Initialize the class with an instance of EpochsTFR corresponding to the method"""
-        self.picks = picks
+        self.picks = [pick - 1 for pick in picks]       #To get index instead of channel names
+        self.cmap = 'inferno'
+        self.info = epochs.info
+
         if method == 'multitaper' :
             from mne.time_frequency import tfr_multitaper
-            self.tfr, _ = tfr_multitaper(epochs, freqs, n_cycles, time_bandwidth = time_bandwidth, picks = picks)
+            self.tfr, _ = tfr_multitaper(epochs, freqs, n_cycles, time_bandwidth = time_bandwidth, picks = self.picks)
 
         if method == 'stockwell'  :
             from mne.time_frequency import tfr_stockwell
-            self.tfr, _ = tfr_stockwell(epochs, freqs, n_cycles, n_fft = n_fft, width = width, picks = picks)
+            print(epochs.info['ch_names'])
+            # The stockwell function does not handle picks like the two other ones ...
+            picked_ch_names = [epochs.info['ch_names'][i] for i in self.picks]
+            picked = epochs.pick_channels(picked_ch_names)
+            self.tfr = tfr_stockwell(picked, fmin=freqs[0], fmax=freqs[-1], n_fft = n_fft, width = width)
 
         if method == 'morlet'     :
             from mne.time_frequency import tfr_morlet
-            self.tfr, _ = tfr_morlet(epochs, freqs, n_cycles, picks = picks)
+            self.tfr, _ = tfr_morlet(epochs, freqs, n_cycles, picks = self.picks)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_time_freq(self, index_channel, ax, vmax = None) :
@@ -40,7 +47,7 @@ class AvgEpochsTFR :
         data = self.tfr.data[index_channel, :, :]
         extent = [self.tfr.times[0], self.tfr.times[-1],
                   self.tfr.freqs[0], self.tfr.freqs[-1]]
-        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = 'GnBu')
+        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_freq_ch(self, time_index, ax, vmax = None) :
@@ -50,7 +57,7 @@ class AvgEpochsTFR :
         data = self.tfr.data[:, :, time_index]
         extent = [self.tfr.freqs[0], self.tfr.freqs[-1],
                                  .5, len(self.picks)+.5]
-        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = 'GnBu')
+        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_time_ch(self, freq_index, ax, vmax = None) :
@@ -60,4 +67,4 @@ class AvgEpochsTFR :
         data = self.tfr.data[:, freq_index, :]
         extent = [self.tfr.times[0], self.tfr.times[-1],
                                  .5, len(self.picks)+.5]
-        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = 'GnBu')
+        return ax.imshow(data, extent = extent, aspect = 'auto', origin = 'lower', vmax = vmax, cmap = self.cmap)

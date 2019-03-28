@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from numpy import mean
+from numpy import mean, log
 
 class EpochsPSD :
     """
@@ -43,6 +43,7 @@ class EpochsPSD :
         self.n_fft     = kwargs.get('n_fft', 256)
         self.n_per_seg = kwargs.get('n_per_seg', self.n_fft)
         self.n_overlap = kwargs.get('n_overlap', 0)
+        self.cmap = 'inferno'
 
 
         if method == 'multitaper' :
@@ -97,7 +98,7 @@ class EpochsPSD :
         return string
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_topomap(self, epoch_index, freq_index, axes = None, show_names = False) :
+    def plot_topomap(self, epoch_index, freq_index, axes = None, log_display = False) :
         """
         Plot the map of the power for a given frequency chosen by freq_index, the frequency
         is hence the value self.freqs[freq_index]. This function will return an error if the class
@@ -110,10 +111,11 @@ class EpochsPSD :
             raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index]
-        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = 'GnBu', show_names = show_names)
+        if log_display : psd_values = 10 * log(psd_values)
+        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False) :
+    def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :
         """
         Plot the map of the power for a given frequency band chosen by freq_index_min and freq_index_max
         , the frequency is hence the value self.freqs[freq_index]. This function will return an error if
@@ -127,10 +129,11 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu', show_names = show_names)
+        if log_display : psd_mean = 10 * log(psd_mean)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False) :
+    def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False, log_display = False) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
@@ -146,10 +149,11 @@ class EpochsPSD :
         psd_values = self.data[:, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = 'GnBu', show_names = show_names)
+        if log_display : psd_mean = 10 * log(psd_mean)
+        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+    def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
@@ -158,13 +162,14 @@ class EpochsPSD :
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = mean(self.data[:, :, freq_index_min : freq_index_max], axis = 0)
+        if log_display : mat = 10 * log(mat)
         if axes is not None :
-            return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+            return axes.matshow(mat, extent = extent, cmap = self.cmap, vmin = vmin, vmax = vmax)
         else :
-            return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+            return plt.matshow(mat, extent = extent, cmap = self.cmap, vmin = vmin, vmax = vmax)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_matrix(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None) :
+    def plot_matrix(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display=False) :
         """
         Plot the map of the average power for a given frequency band chosen by freq_index_min and
         freq_index_max, the frequency is hence the value self.freqs[freq_index]. This function will
@@ -173,30 +178,33 @@ class EpochsPSD :
         """
         extent = [self.freqs[freq_index_min], self.freqs[freq_index_max], self.data.shape[1] + 1, 1]
         mat = self.data[epoch_index, :, freq_index_min : freq_index_max]
+        if log_display : mat = 10 * log(mat)
         if axes is not None :
-            return axes.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+            return axes.matshow(mat, extent = extent, cmap = self.cmap, vmin = vmin, vmax = vmax)
         else :
-            return plt.matshow(mat, extent = extent, cmap = 'GnBu', vmin = vmin, vmax = vmax)
+            return plt.matshow(mat, extent = extent, cmap = self.cmap, vmin = vmin, vmax = vmax)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_single_psd(self, epoch_index, channel_index, freq_index_min, freq_index_max, axes = None) :
+    def plot_single_psd(self, epoch_index, channel_index, freq_index_min, freq_index_max, axes = None, log_display = False) :
         """
         Plot a single PSD corresponding to epoch_index and channel_index, between the values
         corresponding to freq_index_max and freq_index_min.
         """
         psd = self.data[epoch_index, channel_index, freq_index_min : freq_index_max]
+        if log_display : psd = 10 * log(psd)
         if axes is not None :
             return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
         else :
             return plt.plot(self.freqs[freq_index_min : freq_index_max], psd)
 
     #--------------------------------------------------------------------------------------------------------
-    def plot_single_avg_psd(self, channel_index, freq_index_min, freq_index_max, axes = None) :
+    def plot_single_avg_psd(self, channel_index, freq_index_min, freq_index_max, axes = None, log_display = False) :
         """
         Plot a single PSD averaged over epochs and corresponding to channel_index, between
         the values corresponding to freq_index_max and freq_index_min.
         """
         psd = mean(self.data[:, channel_index, freq_index_min : freq_index_max], axis = 0)
+        if log_display : psd = 10 * log(psd)
         if axes is not None :
             return axes.plot(self.freqs[freq_index_min : freq_index_max], psd)
         else :

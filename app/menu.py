@@ -82,7 +82,7 @@ class MenuWindow(QMainWindow) :
             text = text + "time_bandwidth=4\n"
         if self.ui.tfrMethodBox.currentText() == 'stockwell' :
             text = text + "width=1\nn_fft=512\n"
-        text = text + "picked_channels=0"
+        text = text + "picked_channels=1"
         self.ui.tfrParametersText.setText(text)
 
     #=====================================================================
@@ -273,13 +273,21 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     def init_pick_tfr(self) :
         """Init list with picks"""
-        picks = self.params['picked_channels']
+        names = False       # True if it is names instead of indices
+        picks = self.params.get('picked_channels', None)
         if picks is None :
-            return None
-        elif type(picks) == list :
-            return [int(ch) for ch in picks]
+            picks = self.params.get('picked_channels_names', None)
+            if picks is not None and type(picks) == list :
+                return [self.eeg_data.info['ch_names'].index(name)-1 for name in picks]
+            elif picks is None :
+                return None
+            else :
+                return self.eeg_data.info['ch_names'].index(str(picks))-1
         else :
-            return [int(picks)]
+            if type(picks) == list :
+                return [int(ch) for ch in picks]
+            else :
+                return [int(picks)]
 
     #---------------------------------------------------------------------
     def init_avg_tfr(self) :
@@ -289,11 +297,16 @@ class MenuWindow(QMainWindow) :
 
         freqs = arange(self.params['fmin'], self.params['fmax'], self.params['freq_step'])
         n_cycles = self.params['n_cycles']
+        try : n_fft = int(self.params.get('n_fft', None))
+        except TypeError : n_fft = None
+
         picks = self.init_pick_tfr()
+        print("WINDTH : ", self.params.get('width', None))
+        print("METHHOD:", self.ui.tfrMethodBox.currentText())
         self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
-                                   method         = self.ui.psdMethod.currentText(),
+                                   method         = self.ui.tfrMethodBox.currentText(),
                                    time_bandwidth = self.params.get('time_bandwidth', None),
-                                   n_fft          = self.params.get('n_fft', None),
+                                   n_fft          = n_fft,
                                    width          = self.params.get('width', None),
                                    picks          = picks)
 

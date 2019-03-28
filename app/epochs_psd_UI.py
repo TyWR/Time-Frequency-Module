@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'psd-ui.ui'
+# Form implementation generated from reading ui file 'epochs_psd-ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.12
 #
@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_EpochsPSDWindow(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(1600, 900)
+        Dialog.resize(1434, 820)
         Dialog.setMinimumSize(QtCore.QSize(400, 300))
         Dialog.setMaximumSize(QtCore.QSize(1720, 1080))
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Dialog)
@@ -95,6 +95,9 @@ class Ui_EpochsPSDWindow(object):
         self.displayLabel = QtWidgets.QLabel(Dialog)
         self.displayLabel.setObjectName("displayLabel")
         self.horizontalLayout_4.addWidget(self.displayLabel)
+        self.displayLog = QtWidgets.QCheckBox(Dialog)
+        self.displayLog.setObjectName("displayLog")
+        self.horizontalLayout_4.addWidget(self.displayLog)
         self.showSingleEpoch = QtWidgets.QCheckBox(Dialog)
         self.showSingleEpoch.setObjectName("showSingleEpoch")
         self.horizontalLayout_4.addWidget(self.showSingleEpoch)
@@ -129,13 +132,15 @@ class Ui_EpochsPSDWindow(object):
         self.line_3.setObjectName("line_3")
         self.verticalLayout_3.addWidget(self.line_3)
         self.recapLabel = QtWidgets.QLabel(Dialog)
+        self.recapLabel.setMinimumSize(QtCore.QSize(300, 25))
+        self.recapLabel.setMaximumSize(QtCore.QSize(16777215, 25))
         self.recapLabel.setText("")
         self.recapLabel.setObjectName("recapLabel")
-        self.recapLabel.setMinimumSize(QtCore.QSize(150, 25))
-        self.recapLabel.setMaximumSize(QtCore.QSize(150000, 25))
         self.verticalLayout_3.addWidget(self.recapLabel)
-        self.verticalLayout_3.setStretch(0, 3)
+        self.verticalLayout_3.setStretch(0, 15)
+        self.verticalLayout_3.setStretch(1, 1)
         self.verticalLayout_3.setStretch(2, 1)
+        self.verticalLayout_3.setStretch(3, 1)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -147,6 +152,7 @@ class Ui_EpochsPSDWindow(object):
         self.frequencyLabel.setText(_translate("Dialog", "Frequency Range Display (min - max)"))
         self.vmaxLabel.setText(_translate("Dialog", "Scaling "))
         self.displayLabel.setText(_translate("Dialog", "Display"))
+        self.displayLog.setText(_translate("Dialog", "Log Scale"))
         self.showSingleEpoch.setText(_translate("Dialog", "Single Epoch"))
         self.showMean.setText(_translate("Dialog", "Average over Epochs"))
         self.epochsLabel.setText(_translate("Dialog", "Epoch"))
