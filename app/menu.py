@@ -81,7 +81,7 @@ class MenuWindow(QMainWindow) :
         if self.ui.tfrMethodBox.currentText() == 'multitaper' :
             text = text + "time_bandwidth=4\n"
         if self.ui.tfrMethodBox.currentText() == 'stockwell' :
-            text = text + "width=1\nn_fft=512\n"
+            text = text + "width=1\nn_fft=Default\n"
         text = text + "picked_channels=1\npicked_channels_names=None"
         self.ui.tfrParametersText.setText(text)
 
@@ -339,7 +339,7 @@ class MenuWindow(QMainWindow) :
         self.filePath = self.ui.lineEdit.text()
         extension = self.filePath.split("-")[-1].split('.')
         if extension[0] == 'epo' : extension = '-epo.fif'
-        else : extension = '.' + extension[1]
+        else : extension = '.' + extension[-1]
         print(extension)
         try :
             index = self.ui.chooseFileType.findText(extension)

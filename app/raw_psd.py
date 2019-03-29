@@ -39,7 +39,7 @@ class RawPSDWindow(QDialog):
         self.ui.fmax.setMaxLength(4)
         self.ui.fmax.setText(str(self.psd.freqs[-1]))
         self.ui.vmax.setText("0")   #Auto scaling by default
-        self.ui.fmin.setMaxLength(6)
+        self.ui.vmax.setMaxLength(6)
         self.ui.selectPlotType.addItem("PSD Matrix")
         self.ui.selectPlotType.addItem("Topomap")
 
@@ -62,8 +62,8 @@ class RawPSDWindow(QDialog):
         self.cursor = ()
         # Matplotlib toolbar
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
-        self.ui.figureLayout.addWidget(self.ui.canvas)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
+        self.ui.figureLayout.addWidget(self.ui.canvas)
 
 
     #=====================================================================
@@ -130,7 +130,9 @@ class RawPSDWindow(QDialog):
         cax = self.ui.figure.add_axes(position)
         cbar = plt.colorbar(self.cbar_image, cax = cax)
         cbar.ax.get_xaxis().labelpad = 15
-        cbar.ax.set_xlabel('PSD (µV²/Hz)')
+        if self.log : label = 'PSD (dB)'
+        else        : label = 'PSD (µV²/Hz)'
+        cbar.ax.set_xlabel(label)
 
     #---------------------------------------------------------------------
     def set_ax_single_psd(self, ax) :
@@ -182,4 +184,5 @@ class RawPSDWindow(QDialog):
 
         # Just check if f_index_max is not out of bound
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
+        f_index_min = max(0, f_index_min)
         return f_index_min, f_index_max
