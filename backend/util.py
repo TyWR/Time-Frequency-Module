@@ -15,3 +15,10 @@ def xyz_to_montage(path) :
     coord = np.loadtxt(path, skiprows = 1, usecols = (0,1,2), max_rows = n)
     names = np.loadtxt(path, skiprows = 1, usecols = 3, max_rows = n, dtype = np.dtype(str)).tolist()
     return Montage(coord, names, 'standard_1005', selection = [i for i in range(n)])
+
+def float_(value) :
+    """float with handle of none values"""
+    if value is None :
+        return None
+    else :
+        return float(value)

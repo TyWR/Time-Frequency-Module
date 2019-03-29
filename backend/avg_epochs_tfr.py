@@ -35,7 +35,7 @@ class AvgEpochsTFR :
             print(epochs.info['ch_names'])
             # The stockwell function does not handle picks like the two other ones ...
             picked_ch_names = [epochs.info['ch_names'][i] for i in self.picks]
-            picked = epochs.pick_channels(picked_ch_names)
+            picked = epochs.copy().pick_channels(picked_ch_names)
             self.tfr = tfr_stockwell(picked, fmin=freqs[0], fmax=freqs[-1], n_fft = n_fft, width = width)
 
         if method == 'morlet'     :

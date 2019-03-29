@@ -213,3 +213,45 @@ class EpochsPSD :
     #--------------------------------------------------------------------------------------------------------
     def save_matrix_txt(self, path) :
         print("SHOULD SAVE MATRIX FOR EPOCHS")
+
+    #--------------------------------------------------------------------------------------------------------
+    def save_avg_matrix_sef(self, path) :
+        """
+        Save the entire matrix in a sef file
+        """
+        import numpy as np
+        import struct
+
+        n_channels = len(self.info['ch_names'])
+        num_freq_frames = self.data.shape[2]
+        freq_step = (self.freqs[-1] - self.freqs[0]) / num_freq_frames
+        sfreq = float(1 / freq_step)
+
+        f = open(path, 'wb')
+        f.write(struct.pack('I', 0))
+        f.write(struct.pack('I', n_channels))
+        f.write(struct.pack('I', 0))
+        f.write(struct.pack('I', num_freq_frames))
+        f.write(struct.pack('f', sfreq))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+        f.write(struct.pack('H', 0))
+
+        for name in self.info['ch_names'] :
+            n = 0
+            for car in name :
+                f.write(struct.pack('c', bytes(car, 'utf-8')))
+                n += 1
+            while n < 8 :
+                f.write(struct.pack('x'))
+                n += 1
+
+        data = np.reshape(np.mean(self.data, axis = 0), (1, n_channels * num_freq_frames))
+        data.tofile(f)
+
+        f.close()
+        print("done !")

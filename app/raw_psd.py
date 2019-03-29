@@ -46,11 +46,11 @@ class RawPSDWindow(QDialog):
     #---------------------------------------------------------------------
     def set_bindings(self) :
         """Set Bindings"""
-        self.ui.fmin.editingFinished.connect(self.value_change)
-        self.ui.fmax.editingFinished.connect(self.value_change)
-        self.ui.vmax.editingFinished.connect(self.value_change)
+        self.ui.fmin.editingFinished.connect(self.value_changed)
+        self.ui.fmax.editingFinished.connect(self.value_changed)
+        self.ui.vmax.editingFinished.connect(self.value_changed)
         self.ui.selectPlotType.currentIndexChanged.connect(self.plot_change)
-        self.ui.displayLog.stateChanged.connect(self.value_change)
+        self.ui.displayLog.stateChanged.connect(self.value_changed)
         self.ui.frequencySlider.valueChanged.connect(self.slider_changed)
 
     #---------------------------------------------------------------------
@@ -146,7 +146,7 @@ class RawPSDWindow(QDialog):
     def plot_change(self) :
         """Update the plot type"""
         self.plotType = self.ui.selectPlotType.currentText()
-        self.value_change()
+        self.value_changed()
 
     #---------------------------------------------------------------------
     def slider_changed(self) :
@@ -155,10 +155,10 @@ class RawPSDWindow(QDialog):
         freq = self.psd.freqs[freq_index]
         self.ui.fmin.setText(str(freq))
         self.ui.fmax.setText(str(freq))
-        self.value_change()
+        self.value_changed()
 
     #---------------------------------------------------------------------
-    def value_change(self) :
+    def value_changed(self) :
         """ Get called if a value is changed """
         fmin = float(self.ui.fmin.text())
         fmax = float(self.ui.fmax.text())
