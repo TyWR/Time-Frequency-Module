@@ -30,6 +30,7 @@ class MenuWindow(QMainWindow) :
         self.init_tfr_parameters()
         self.filePath = ''
         self.dataType = None
+        self.selected_ch = []
 
     #---------------------------------------------------------------------
     def set_bindings(self) :
@@ -48,6 +49,7 @@ class MenuWindow(QMainWindow) :
         self.ui.tfrMethodBox.currentIndexChanged.connect(self.init_tfr_parameters)
         self.ui.epochingButton.clicked.connect(self.open_epoching_window)
         self.ui.electrodeMontage.currentTextChanged.connect(self.choose_xyz_path)
+        self.ui.pushButton.clicked.connect(self.open_channel_picker)
 
     #---------------------------------------------------------------------
     def set_boxes(self) :
@@ -77,12 +79,11 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def init_tfr_parameters(self) :
         """Set the parameters in the parameters text slot"""
-        text = "fmin=5\nfmax=100\nfreq_step=1\nn_cycles=3\n"
+        text = "fmin=5\nfmax=100\nfreq_step=1\nn_cycles=3"
         if self.ui.tfrMethodBox.currentText() == 'multitaper' :
-            text = text + "time_bandwidth=4\n"
+            text = text + "\ntime_bandwidth=4"
         if self.ui.tfrMethodBox.currentText() == 'stockwell' :
-            text = text + "width=1\nn_fft=Default\n"
-        text = text + "picked_channels=1\npicked_channels_names=None"
+            text = text + "\nwidth=1\nn_fft=Default"
         self.ui.tfrParametersText.setText(text)
 
     #=====================================================================
@@ -268,23 +269,7 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     def init_pick_tfr(self) :
         """Init list with picks"""
-        names = False       # True if it is names instead of indices
-        picked_channels = self.params.get('picked_channels', None)
-        picked_channels_names = self.params.get('picked_channels_names', None)
-        if picked_channels is not None :
-            if type(picked_channels) == list :
-                return [int(pick) for pick in picked_channels]
-            else :
-                return [int(picked_channels)]
-
-        elif picked_channels_names is not None :
-            if type(picked_channels_names) == list :
-                return [self.eeg_data.info['ch_names'].index(name)+1 for name in picked_channels_names]
-            else :
-                return [self.eeg_data.info['ch_names'].index(picked_channels_names)+1]
-
-        else :
-            return None
+        return [self.eeg_data.info['ch_names'].index(name)+1 for name in self.selected_ch]
 
     #---------------------------------------------------------------------
     def init_avg_tfr(self) :
@@ -437,6 +422,24 @@ class MenuWindow(QMainWindow) :
         if self.dataType == 'epochs' :
             infos = infos + "Number of Time points per Epoch : {}".format(len(self.eeg_data.times))
         return infos
+
+
+    #=====================================================================
+    # Channel picker
+    #=====================================================================
+    def open_channel_picker(self) :
+        """Open the channel picker"""
+        from app.select_channels import PickChannels
+        try :
+            channels = self.eeg_data.info['ch_names']
+            picker = PickChannels(self, channels, self.selected_ch)
+            picker.exec_()
+        except :
+            self.show_error('No EEG Data initialized')
+
+    def set_selected_ch(self, selected) :
+        """Set selected channels"""
+        self.selected_ch = selected
 
     #=====================================================================
     # Pop up windows for error and informations
