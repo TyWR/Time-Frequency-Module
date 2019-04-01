@@ -130,6 +130,14 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.set_montage(read_montage(montage))
 
     #---------------------------------------------------------------------
+    def init_picks(self) :
+        """Init list with picks"""
+        try :
+            return [self.eeg_data.info['ch_names'].index(name) for name in self.selected_ch]
+        except :
+            self.show_error('No eeg data initialized')
+
+    #---------------------------------------------------------------------
     def read_parameters(self, tfr = False) :
         """Read parameters from txt file and sets it up in params"""
         if tfr :
@@ -198,7 +206,8 @@ class MenuWindow(QMainWindow) :
                                  method     = 'welch',
                                  n_fft      = n_fft,
                                  n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
-                                 n_overlap  = int(self.params.get('n_overlap', 0)))
+                                 n_overlap  = int(self.params.get('n_overlap', 0)),
+                                 picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = EpochsPSD(self.eeg_data,
@@ -207,7 +216,8 @@ class MenuWindow(QMainWindow) :
                                  tmin       = float_(self.params['tmin']),
                                  tmax       = float_(self.params['tmax']),
                                  method     = 'multitaper',
-                                 bandwidth  = int(self.params.get('bandwidth', 4)))
+                                 bandwidth  = int(self.params.get('bandwidth', 4)),
+                                 picks      = self.init_picks())
 
     #---------------------------------------------------------------------
     def init_raw_psd(self) :
@@ -225,7 +235,8 @@ class MenuWindow(QMainWindow) :
                               method     = 'welch',
                               n_fft      = n_fft,
                               n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
-                              n_overlap  = int(self.params.get('n_overlap', 0)))
+                              n_overlap  = int(self.params.get('n_overlap', 0)),
+                              picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = RawPSD(self.eeg_data,
@@ -234,7 +245,8 @@ class MenuWindow(QMainWindow) :
                               tmin       = float_(self.params['tmin']),
                               tmax       = float_(self.params['tmax']),
                               method     = 'multitaper',
-                              bandwidth  = int(self.params.get('bandwidth', 4)))
+                              bandwidth  = int(self.params.get('bandwidth', 4)),
+                              picks      = self.init_picks())
 
     #---------------------------------------------------------------------
     def open_epochs_psd_visualizer(self) :
@@ -267,11 +279,6 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     # Open TFR Window
     #=====================================================================
-    def init_pick_tfr(self) :
-        """Init list with picks"""
-        return [self.eeg_data.info['ch_names'].index(name)+1 for name in self.selected_ch]
-
-    #---------------------------------------------------------------------
     def init_avg_tfr(self) :
         """Init tfr from parameters"""
         from backend.avg_epochs_tfr import AvgEpochsTFR
@@ -285,7 +292,7 @@ class MenuWindow(QMainWindow) :
         try : n_fft = int(self.params.get('n_fft', None))
         except TypeError : n_fft = None
 
-        try : picks = self.init_pick_tfr()
+        try : picks = self.init_picks()
         except : self.show_error("404, a name was not found :(")
 
         self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
@@ -325,7 +332,6 @@ class MenuWindow(QMainWindow) :
         extension = self.filePath.split("-")[-1].split('.')
         if extension[0] == 'epo' : extension = '-epo.fif'
         else : extension = '.' + extension[-1]
-        print(extension)
         try :
             index = self.ui.chooseFileType.findText(extension)
             self.ui.chooseFileType.setCurrentIndex(index)
@@ -341,7 +347,7 @@ class MenuWindow(QMainWindow) :
         try :
             self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
         except :
-            print("No path found")
+            show_error('Path to parameters not found :(')
 
     #---------------------------------------------------------------------
     def choose_tfr_parameters_path(self) :
@@ -418,11 +424,10 @@ class MenuWindow(QMainWindow) :
         infos = "Sampling Frequency : {}\nNumber of Channels : {}\n".format(
                 self.eeg_data.info["sfreq"], self.eeg_data.info["nchan"])
         if self.dataType == 'raw' :
-            infos = infos + "Number of Time points : {}".format(self.eeg_data.n_times)
+            infos = infos + "Time points : {}".format(self.eeg_data.n_times)
         if self.dataType == 'epochs' :
-            infos = infos + "Number of Time points per Epoch : {}".format(len(self.eeg_data.times))
+            infos = infos + "Time points per Epoch : {}".format(len(self.eeg_data.times))
         return infos
-
 
     #=====================================================================
     # Channel picker
@@ -440,6 +445,7 @@ class MenuWindow(QMainWindow) :
     def set_selected_ch(self, selected) :
         """Set selected channels"""
         self.selected_ch = selected
+        self.ui.displayChannel.setText(",".join(selected))
 
     #=====================================================================
     # Pop up windows for error and informations

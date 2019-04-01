@@ -26,27 +26,34 @@ class RawPSD :
     plot_single_psd             : Plot the PSD for a given epoch and channel
         """
     #--------------------------------------------------------------------------------------------------------
-    def __init__(self, raw, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
+    def __init__(self, raw, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', picks=None, **kwargs) :
         """
         Computes the PSD of the raw file with the correct method multitaper or welch.
         """
+        raw.load_data()
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax
+        self.info = raw.info
 
-        self.info            = raw.info
+        ch_names = [raw.info['ch_names'][i] for i in picks]
+        raw_picked = raw.copy()
+        raw_picked.pick_channels(ch_names)
+        self.picked_info = raw_picked.info
+
         self.method          = method
 
         self.bandwidth = kwargs.get('bandwidth', 4.)
         self.n_fft     = kwargs.get('n_fft', 256)
         self.n_per_seg = kwargs.get('n_per_seg', self.n_fft)
         self.n_overlap = kwargs.get('n_overlap', 0)
-        self.cmap = 'inferno'
+        self.picks     = picks
+        self.cmap      = 'inferno'
 
         if method == 'multitaper' :
             from mne.time_frequency import psd_multitaper
 
             print("Computing Mulitaper PSD with parameter bandwidth = {}".format(self.bandwidth))
-            self.data, self.freqs = psd_multitaper(raw,
+            self.data, self.freqs = psd_multitaper(raw_picked,
                                                    fmin             = fmin,
                                                    fmax             = fmax,
                                                    tmin             = tmin,
@@ -59,7 +66,7 @@ class RawPSD :
 
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
                   self.n_fft, self.n_per_seg, self.n_overlap))
-            self.data, self.freqs = psd_welch(raw,
+            self.data, self.freqs = psd_welch(raw_picked,
                                               fmin      = fmin,
                                               fmax      = fmax,
                                               tmin      = tmin,
@@ -83,7 +90,7 @@ class RawPSD :
 
         psd_values = self.data[:, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
-        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = self.cmap)
+        return plot_topomap(psd_values, self.picked_info, axes = axes, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :
@@ -96,13 +103,13 @@ class RawPSD :
         from numpy import mean
 
         # Handling error if no coordinates are found
-        if self.info['chs'][0]['loc'] is None :
-            raise ValueError("No locations available for this dataset")
+        #if self.info['chs'][0]['loc'] is None :
+        #    raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[:, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
         if log_display : psd_mean = 10 * log(psd_mean)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
+        return plot_topomap(psd_mean, self.picked_info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :

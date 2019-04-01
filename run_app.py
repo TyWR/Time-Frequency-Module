@@ -10,6 +10,5 @@ from app.menu import MenuWindow
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main = MenuWindow()
-    main.setWindowIcon(QIcon('media/main.png'))
     main.show()
     sys.exit(app.exec_())

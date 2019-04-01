@@ -228,7 +228,7 @@ class EpochsPSDWindow(QDialog):
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
         self.psd.plot_single_psd(epoch_picked, channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax, log_display = self.log)
-        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, self.psd.info['ch_names'][channel_picked-1]))
+        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, self.psd.picked_info['ch_names'][channel_picked-1]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------
@@ -238,7 +238,7 @@ class EpochsPSDWindow(QDialog):
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
         self.psd.plot_single_avg_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax, log_display = self.log)
-        ax.set_title('Average PSD of channel {}'.format(self.psd.info['ch_names'][channel_picked-1]))
+        ax.set_title('Average PSD of channel {}'.format(self.psd.picked_info['ch_names'][channel_picked-1]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------

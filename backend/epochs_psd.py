@@ -30,20 +30,27 @@ class EpochsPSD :
     """
 
     #--------------------------------------------------------------------------------------------------------
-    def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', **kwargs) :
+    def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', picks = None, **kwargs) :
         """Computes the PSD of the epochs with the correct method multitaper or welch"""
 
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax
+        self.info = epochs.info
 
-        self.info            = epochs.info
+
+        ch_names = [epochs.info['ch_names'][i] for i in picks]
+        epochs_picked = epochs.copy()
+        epochs_picked.pick_channels(ch_names)
+        self.picked_info = epochs_picked.info
+
         self.method          = method
 
         self.bandwidth = kwargs.get('bandwidth', 4.)
         self.n_fft     = kwargs.get('n_fft', 256)
         self.n_per_seg = kwargs.get('n_per_seg', self.n_fft)
         self.n_overlap = kwargs.get('n_overlap', 0)
-        self.cmap = 'inferno'
+        self.picks     = picks
+        self.cmap      = 'inferno'
 
 
         if method == 'multitaper' :
@@ -51,7 +58,7 @@ class EpochsPSD :
 
             print("Computing Mulitaper PSD with parameter bandwidth = {} on ".format(
                   self.bandwidth))
-            self.data, self.freqs = psd_multitaper(epochs,
+            self.data, self.freqs = psd_multitaper(epochs_picked,
                                                    fmin             = fmin,
                                                    fmax             = fmax,
                                                    tmin             = tmin,
@@ -64,7 +71,7 @@ class EpochsPSD :
 
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
                   self.n_fft, self.n_per_seg, self.n_overlap))
-            self.data, self.freqs = psd_welch(epochs,
+            self.data, self.freqs = psd_welch(epochs_picked,
                                               fmin      = fmin,
                                               fmax      = fmax,
                                               tmin      = tmin,
@@ -112,7 +119,7 @@ class EpochsPSD :
 
         psd_values = self.data[epoch_index, :, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
-        return plot_topomap(psd_values, self.info, axes = axes, show = False, cmap = self.cmap)
+        return plot_topomap(psd_values, self.picked_info, axes = axes, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_topomap_band(self, epoch_index, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :
@@ -130,7 +137,7 @@ class EpochsPSD :
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
         if log_display : psd_mean = 10 * log(psd_mean)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
+        return plot_topomap(psd_mean, self.picked_info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_avg_topomap_band(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, show_names = False, log_display = False) :
@@ -150,7 +157,7 @@ class EpochsPSD :
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
         if log_display : psd_mean = 10 * log(psd_mean)
-        return plot_topomap(psd_mean, self.info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
+        return plot_topomap(psd_mean, self.picked_info, axes = axes, vmin = vmin, vmax = vmax, show = False, cmap = self.cmap)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_avg_matrix(self, freq_index_min, freq_index_max, axes = None, vmin = None, vmax = None, log_display = False) :
