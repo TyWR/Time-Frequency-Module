@@ -7,7 +7,7 @@ class PickChannels(QDialog) :
         self.setWindowTitle("Pick Channels")
         self.initial_selection = selected
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(QLabel("Please select all channels \nfor a correct topomap plotting"))
+        self.layout.addWidget(QLabel("Please select all scalp channels \nfor a correct topomap plotting"))
         self.init_channel_box(channels, selected)
         self.init_buttonbox()
         self.ch.itemSelectionChanged.connect(self.init_buttons)

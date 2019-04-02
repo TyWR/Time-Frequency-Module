@@ -135,7 +135,11 @@ class MenuWindow(QMainWindow) :
     def init_picks(self) :
         """Init list with picks"""
         try :
-            return [self.eeg_data.info['ch_names'].index(name) for name in self.selected_ch]
+            picked_ch = [self.eeg_data.info['ch_names'].index(name) for name in self.selected_ch]
+            if len(picked_ch) == 0 :
+                return None
+            else :
+                return picked_ch
         except :
             self.show_error('No eeg data initialized')
 
@@ -168,14 +172,13 @@ class MenuWindow(QMainWindow) :
         """Initialize the data and plot the data on a matplotlib window"""
         try :
             self.read_parameters()
+            close('all')
+            self.eeg_data.plot(scalings = 'auto')
+            show()
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file\nPlease verify the path and extension")
         except (ValueError) :
             self.show_error("Names of electrodes don't fit convention")
-        else :
-            close('all')
-            self.eeg_data.plot(scalings = 'auto')
-            show()
 
     #=====================================================================
     # Open PSD Visualizer
@@ -317,6 +320,9 @@ class MenuWindow(QMainWindow) :
 
         try : picks = self.init_picks()
         except : self.show_error("404, a name was not found :(")
+        else :
+            if picks is None :
+                self.show_infos("All channels selected. Computing may be long")
 
         self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
                                    method         = self.ui.tfrMethodBox.currentText(),
@@ -370,7 +376,7 @@ class MenuWindow(QMainWindow) :
         try :
             self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
         except :
-            show_error('Path to parameters not found :(')
+            self.show_error('Path to parameters not found :(')
 
     #---------------------------------------------------------------------
     def choose_tfr_parameters_path(self) :
@@ -402,7 +408,7 @@ class MenuWindow(QMainWindow) :
             self.ui.electrodeMontage.setCurrentIndex(index)
             self.show_error("EEG Data not yet initialized. Please initialize the data before proceeding.")
         except :
-            self.show_error("Cannot XYZ read file :(")
+            self.show_error("Cannot read .xyz file :(")
             index = self.ui.electrodeMontage.findText('No coordinates')
             self.ui.electrodeMontage.setCurrentIndex(index)
 
@@ -415,7 +421,7 @@ class MenuWindow(QMainWindow) :
         try :
             self.read_parameters()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+            self.show_error("Can't find/read file :(\nPlease verify the path and extension")
         else :
             if self.dataType == 'epochs' : self.init_epochs_psd()
             if self.dataType == 'raw'    : self.init_raw_psd()
@@ -436,10 +442,9 @@ class MenuWindow(QMainWindow) :
         """Display informations about data on a pop-up window"""
         try :
             self.read_parameters()
-        except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file\nPlease verify the path and extension")
-        else :
             self.show_infos(self.init_info_string())
+        except (AttributeError, FileNotFoundError, OSError) :
+            self.show_error("Can't find/read file :(\nPlease verify the path and extension")            
 
     #---------------------------------------------------------------------
     def init_info_string(self) :
