@@ -34,8 +34,8 @@ class AvgTFRWindow(QDialog):
         self.ui.canvas = FigureCanvas(self.ui.figure)
         # Matplotlib toolbar
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
-        self.ui.matplotlibLayout.addWidget(self.ui.canvas)
         self.ui.matplotlibLayout.addWidget(self.ui.toolbar)
+        self.ui.matplotlibLayout.addWidget(self.ui.canvas)
 
     #---------------------------------------------------------------------
     def set_line_edit(self) :

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QDialogButtonBox, QLabel
 
 class PickChannels(QDialog) :
     def __init__(self, parent, channels, selected=[]):
@@ -7,14 +7,20 @@ class PickChannels(QDialog) :
         self.setWindowTitle("Pick Channels")
         self.initial_selection = selected
         self.layout = QVBoxLayout(self)
-
+        self.layout.addWidget(QLabel("Please select all channels \nfor a correct topomap plotting"))
         self.init_channel_box(channels, selected)
-        self.layout.addWidget(self.ch)
-        self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok |
-                                          QDialogButtonBox.Cancel)
-        self.layout.addWidget(self.buttonbox)
+        self.init_buttonbox()
         self.ch.itemSelectionChanged.connect(self.init_buttons)
         self.init_buttons()  # initialize OK button state
+
+
+    def init_buttonbox(self) :
+        self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok |
+                                          QDialogButtonBox.Cancel)
+        self.buttonbox.button(QDialogButtonBox.Ok).clicked.connect(self.close)
+        self.buttonbox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
+        self.layout.addWidget(self.buttonbox)
+
 
     def init_channel_box(self, channels, selected) :
         """Initialize list"""
@@ -24,6 +30,7 @@ class PickChannels(QDialog) :
         for i in range(self.ch.count()):
             if self.ch.item(i).data(0) in selected:
                 self.ch.item(i).setSelected(True)
+        self.layout.addWidget(self.ch)
 
     def init_buttons(self):
         """Toggle OK button"""
