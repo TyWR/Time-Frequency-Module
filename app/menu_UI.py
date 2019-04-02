@@ -20,7 +20,7 @@ class Ui_MenuWindow(object):
         font.setWeight(50)
         MenuWindow.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../Time-Frequency-Module/media/main.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../main/media/main.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MenuWindow.setWindowIcon(icon)
         MenuWindow.setAutoFillBackground(False)
         MenuWindow.setStyleSheet("")

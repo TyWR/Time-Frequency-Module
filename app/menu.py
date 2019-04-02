@@ -71,7 +71,7 @@ class MenuWindow(QMainWindow) :
         """Set the parameters in the parameters text slot"""
         text = "fmin=0\nfmax=100\ntmin=Default\ntmax=Default\n"
         if self.ui.psdMethod.currentText() == 'welch' :
-            text = text + "n_fft=256\nn_per_seg=256\nn_overlap =0"
+            text = text + "n_fft=Default\nn_per_seg=Default\nn_overlap =0"
         if self.ui.psdMethod.currentText() == 'multitaper' :
             text = text + "bandwidth=4"
         self.ui.psdParametersText.setText(text)
@@ -79,9 +79,11 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def init_tfr_parameters(self) :
         """Set the parameters in the parameters text slot"""
-        text = "fmin=5\nfmax=100\nfreq_step=1\nn_cycles=3"
+        text = "fmin=5\nfmax=100"
         if self.ui.tfrMethodBox.currentText() == 'multitaper' :
-            text = text + "\ntime_bandwidth=4"
+            text = text + "\nfreq_step=1\ntime_window=0.5\ntime_bandwidth=4"
+        if self.ui.tfrMethodBox.currentText() == 'morlet' :
+            text = text + "\nfreq_step=1\ntime_window=0.5"
         if self.ui.tfrMethodBox.currentText() == 'stockwell' :
             text = text + "\nwidth=1\nn_fft=Default"
         self.ui.tfrParametersText.setText(text)
@@ -191,13 +193,23 @@ class MenuWindow(QMainWindow) :
                 self.open_raw_psd_visualizer()
 
     #---------------------------------------------------------------------
+    def init_nfft(self) :
+        from backend.util import int_
+        n_fft    = int_(self.params.get('n_fft', None))
+        if n_fft is None :
+            if self.dataType == 'raw' :
+                 n_fft = self.eeg_data.n_times
+            if self.dataType == 'epochs' :
+                n_fft = len(self.eeg_data.times)
+        return n_fft
+
     def init_epochs_psd(self) :
         """Initialize the instance of EpochsPSD"""
         from backend.epochs_psd import EpochsPSD
-        from backend.util import float_
+        from backend.util import float_, int_
 
         if self.ui.psdMethod.currentText() == 'welch' :
-            n_fft    = int(self.params.get('n_fft', 256))
+            n_fft = self.init_nfft()
             self.psd = EpochsPSD(self.eeg_data,
                                  fmin       = float_(self.params['fmin']),
                                  fmax       = float_(self.params['fmax']),
@@ -205,8 +217,8 @@ class MenuWindow(QMainWindow) :
                                  tmax       = float_(self.params['tmax']),
                                  method     = 'welch',
                                  n_fft      = n_fft,
-                                 n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
-                                 n_overlap  = int(self.params.get('n_overlap', 0)),
+                                 n_per_seg  = int_(self.params.get('n_per_seg', n_fft)),
+                                 n_overlap  = int_(self.params.get('n_overlap', 0)),
                                  picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
@@ -216,17 +228,17 @@ class MenuWindow(QMainWindow) :
                                  tmin       = float_(self.params['tmin']),
                                  tmax       = float_(self.params['tmax']),
                                  method     = 'multitaper',
-                                 bandwidth  = int(self.params.get('bandwidth', 4)),
+                                 bandwidth  = float_(self.params.get('bandwidth', 4)),
                                  picks      = self.init_picks())
 
     #---------------------------------------------------------------------
     def init_raw_psd(self) :
         """Initialize the instance of RawPSD"""
         from backend.raw_psd import RawPSD
-        from backend.util import float_
+        from backend.util import float_, int_
 
         if self.ui.psdMethod.currentText() == 'welch' :
-            n_fft    = int(self.params.get('n_fft', 256))
+            n_fft = self.init_nfft()
             self.psd = RawPSD(self.eeg_data,
                               fmin       = float_(self.params['fmin']),
                               fmax       = float_(self.params['fmax']),
@@ -234,8 +246,8 @@ class MenuWindow(QMainWindow) :
                               tmax       = float_(self.params['tmax']),
                               method     = 'welch',
                               n_fft      = n_fft,
-                              n_per_seg  = int(self.params.get('n_per_seg', n_fft)),
-                              n_overlap  = int(self.params.get('n_overlap', 0)),
+                              n_per_seg  = int_(self.params.get('n_per_seg', n_fft)),
+                              n_overlap  = int_(self.params.get('n_overlap', 0)),
                               picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
@@ -285,9 +297,20 @@ class MenuWindow(QMainWindow) :
         from backend.util import float_
         from numpy import arange
 
-        fmin, fmax, step = float_(self.params['fmin']), float_(self.params['fmax']), float_(self.params['freq_step'])
+        fmin, fmax, step = float_(self.params['fmin']), float_(self.params['fmax']), float_(self.params.get('freq_step', 1))
         freqs = arange(fmin, fmax, step)
-        n_cycles = float(self.params['n_cycles'])
+
+        # Handling of the time window parameter for multitaper and morlet method
+        n_cycles = 0
+        if self.ui.tfrMethodBox.currentText() != "stockwell" :
+            n_cycles = float_(self.params.get('n_cycles', None))
+            if n_cycles is None :
+                time_window = float_(self.params.get('time_window', None))
+                if time_window is None :
+                    self.show_error('Please specify a number of cycles, or a time_window parameter')
+                    raise ValueError("Not enough parameters found")
+                else :
+                    n_cycles = freqs * time_window
 
         try : n_fft = int(self.params.get('n_fft', None))
         except TypeError : n_fft = None

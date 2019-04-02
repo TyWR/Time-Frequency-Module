@@ -22,3 +22,10 @@ def float_(value) :
         return None
     else :
         return float(value)
+
+def int_(value) :
+    """int with handle of none values"""
+    if value is None :
+        return None
+    else :
+        return int(value)
