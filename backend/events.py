@@ -38,6 +38,8 @@ class Events :
 
         for key, values in self.dic.items() :
             for begin, end in values :
+                #Create a scatter at each boundary of the segment, and a
+                # line between the two dots
                 ax.hlines(count, begin, end, color='r', alpha = .5)
                 ax.scatter(begin, count, color='r', alpha = .5)
                 ax.scatter(end, count, color='r', alpha = .5)

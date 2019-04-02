@@ -152,13 +152,17 @@ class EpochsPSDWindow(QDialog):
         # Plot single epoch if showSingleEpoch is checked
         if self.ui.showSingleEpoch.checkState() :
             ax = self.ui.figure.add_subplot(1, nbFrames, 1)
-            self.cbar_image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
+            self.cbar_image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max,
+                                                            axes = ax, vmin = self.vmin, vmax = vmax,
+                                                            log_display = self.log)
             ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
 
         # plot average data if showMean is checked
         if self.ui.showMean.checkState() :
             ax = self.ui.figure.add_subplot(1, nbFrames, nbFrames)
-            self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
+            self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax,
+                                                                vmin = self.vmin, vmax = vmax,
+                                                                log_display = self.log)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
     #---------------------------------------------------------------------
@@ -169,7 +173,8 @@ class EpochsPSDWindow(QDialog):
         # plot single epoch data uf showSingleEpoch is checked
         if self.ui.showSingleEpoch.checkState() :
             ax = self.ui.figure.add_subplot(1, nbFrames, 1)
-            self.cbar_image = self.psd.plot_matrix(epoch_index, f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
+            self.cbar_image = self.psd.plot_matrix(epoch_index, f_index_min, f_index_max, axes = ax,
+                                                   vmin = self.vmin, vmax = vmax, log_display = self.log)
             ax.axis('tight')
             ax.set_title("PSD Matrix for epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
             ax.set_xlabel('Frequencies (Hz)')
@@ -179,7 +184,8 @@ class EpochsPSDWindow(QDialog):
         # plot average data if showMean is checked
         if self.ui.showMean.checkState() :
             ax = self.ui.figure.add_subplot(1, nbFrames, nbFrames)
-            self.cbar_image = self.psd.plot_avg_matrix(f_index_min, f_index_max, axes = ax, vmin = self.vmin, vmax = vmax, log_display = self.log)
+            self.cbar_image = self.psd.plot_avg_matrix(f_index_min, f_index_max, axes = ax,
+                                                       vmin = self.vmin, vmax = vmax, log_display = self.log)
             ax.axis('tight')
             ax.set_title("Average PSD Matrix", fontsize = 15, fontweight = 'light')
             ax.set_xlabel('Frequencies (Hz)')
@@ -227,8 +233,11 @@ class EpochsPSDWindow(QDialog):
         plt.close('all')
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
-        self.psd.plot_single_psd(epoch_picked, channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax, log_display = self.log)
-        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1, self.psd.picked_info['ch_names'][channel_picked-1]))
+        self.psd.plot_single_psd(epoch_picked, channel_picked - 1,
+                                 self.f_index_min, self.f_index_max,
+                                 axes = ax, log_display = self.log)
+        ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1,
+                     self.psd.picked_info['ch_names'][channel_picked-1]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------
@@ -237,8 +246,10 @@ class EpochsPSDWindow(QDialog):
         plt.close('all')
         fig = plt.figure(figsize = (5, 5))
         ax = fig.add_subplot(1, 1, 1)
-        self.psd.plot_single_avg_psd(channel_picked - 1, self.f_index_min, self.f_index_max, axes = ax, log_display = self.log)
-        ax.set_title('Average PSD of channel {}'.format(self.psd.picked_info['ch_names'][channel_picked-1]))
+        self.psd.plot_single_avg_psd(channel_picked - 1, self.f_index_min, self.f_index_max,
+                                     axes = ax, log_display = self.log)
+        ax.set_title('Average PSD of channel {}'.format(
+                     self.psd.picked_info['ch_names'][channel_picked-1]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------

@@ -11,10 +11,10 @@ class PickChannels(QDialog) :
         self.init_channel_box(channels, selected)
         self.init_buttonbox()
         self.ch.itemSelectionChanged.connect(self.init_buttons)
-        self.init_buttons()  # initialize OK button state
-
+        self.init_buttons()
 
     def init_buttonbox(self) :
+        """Initialize button box"""
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok |
                                           QDialogButtonBox.Cancel)
         self.buttonbox.button(QDialogButtonBox.Ok).clicked.connect(self.close)

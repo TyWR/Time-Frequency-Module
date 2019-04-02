@@ -32,25 +32,22 @@ class EpochsPSD :
     #--------------------------------------------------------------------------------------------------------
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', picks = None, **kwargs) :
         """Computes the PSD of the epochs with the correct method multitaper or welch"""
-
-        self.fmin, self.fmax = fmin, fmax
-        self.tmin, self.tmax = tmin, tmax
-        self.info = epochs.info
-
-
+        # Create a a sub instance of raw with the picked channels
         ch_names = [epochs.info['ch_names'][i] for i in picks]
         epochs_picked = epochs.copy()
         epochs_picked.pick_channels(ch_names)
         self.picked_info = epochs_picked.info
 
-        self.method          = method
-
-        self.bandwidth = kwargs.get('bandwidth', 4.)
-        self.n_fft     = kwargs.get('n_fft', 256)
-        self.n_per_seg = kwargs.get('n_per_seg', self.n_fft)
-        self.n_overlap = kwargs.get('n_overlap', 0)
-        self.picks     = picks
-        self.cmap      = 'inferno'
+        self.fmin, self.fmax    = fmin, fmax
+        self.tmin, self.tmax    = tmin, tmax
+        self.info               = epochs.info
+        self.method             = method
+        self.bandwidth          = kwargs.get('bandwidth', 4.)
+        self.n_fft              = kwargs.get('n_fft', 256)
+        self.n_per_seg          = kwargs.get('n_per_seg', self.n_fft)
+        self.n_overlap          = kwargs.get('n_overlap', 0)
+        self.picks              = picks
+        self.cmap               = 'inferno'
 
 
         if method == 'multitaper' :
@@ -113,10 +110,6 @@ class EpochsPSD :
         """
         from mne.viz import plot_topomap
 
-        # Handling error if no coordinates are found
-        if self.info['chs'][0]['loc'] is None :
-            raise ValueError("No locations available for this dataset")
-
         psd_values = self.data[epoch_index, :, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
         return plot_topomap(psd_values, self.picked_info, axes = axes, show = False, cmap = self.cmap)
@@ -129,10 +122,6 @@ class EpochsPSD :
         the class is not initialized with the coordinates of the different electrodes.
         """
         from mne.viz import plot_topomap
-
-        # Handling error if no coordinates are found
-        if self.info['chs'][0]['loc'] is None :
-            raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
@@ -148,10 +137,6 @@ class EpochsPSD :
         electrodes.
         """
         from mne.viz import plot_topomap
-
-        # Handling error if no coordinates are found
-        if self.info['chs'][0]['loc'] is None :
-            raise ValueError("No locations available for this dataset")
 
         psd_values = self.data[:, :, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
@@ -230,7 +215,7 @@ class EpochsPSD :
         import struct
 
         n_channels = len(self.info['ch_names'])
-        num_freq_frames = self.data.shape[2]
+        num_freq_frames = len(self.freqs)
         freq_step = (self.freqs[-1] - self.freqs[0]) / num_freq_frames
         sfreq = float(1 / freq_step)
 

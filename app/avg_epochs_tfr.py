@@ -54,12 +54,14 @@ class AvgTFRWindow(QDialog):
 
     #---------------------------------------------------------------------
     def set_slider(self) :
+        """Setup the main slider"""
         self.index = self.ui.mainSlider.value()
         self.ui.mainSlider.setMinimum(0)
         self.update_slider()
 
     #---------------------------------------------------------------------
     def set_bindings(self) :
+        """Set the bindings"""
         self.ui.lineEdit.editingFinished.connect(self.scaling_changed)
         self.ui.displayBox.currentIndexChanged.connect(self.plot_changed)
         self.ui.mainSlider.valueChanged.connect(self.index_changed)
@@ -81,6 +83,7 @@ class AvgTFRWindow(QDialog):
 
     #---------------------------------------------------------------------
     def scaling_changed(self) :
+        """Gets called when scaling is changed"""
         self.vmax = float(self.ui.lineEdit.text())
         if self.vmax == 0 : self.vmax = None
         self.plot()
@@ -115,6 +118,7 @@ class AvgTFRWindow(QDialog):
 
     #---------------------------------------------------------------------
     def plot_time_freq(self) :
+        """Plot the time-frequency representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
         self.cbar_image = self.avg.plot_time_freq(self.index, ax, vmax = self.vmax)
@@ -129,6 +133,7 @@ class AvgTFRWindow(QDialog):
 
     #---------------------------------------------------------------------
     def plot_freq_ch(self) :
+        """Plot the frequency-channel representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
         self.cbar_image = self.avg.plot_freq_ch(self.index, ax, vmax = self.vmax)
@@ -144,6 +149,7 @@ class AvgTFRWindow(QDialog):
 
     #---------------------------------------------------------------------
     def plot_time_ch(self) :
+        """Plot the time-channels representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
         self.cbar_image = self.avg.plot_time_ch(self.index, ax, vmax = self.vmax)

@@ -43,12 +43,14 @@ class EpochingWindow(QDialog):
         self.ui.mrkBox.addItem("-eve.fif")
 
     def set_values(self) :
+        """Set default values"""
         self.ui.tmin.setText('-0.5')
         self.ui.tmin.setMaxLength(5)
         self.ui.tmax.setText('0.5')
         self.ui.tmax.setMaxLength(5)
 
     def set_mrk_box(self) :
+        """Set the marker box"""
         try :
             self.read_events()
         except :
@@ -62,11 +64,13 @@ class EpochingWindow(QDialog):
     # Path settings
     #=====================================================================
     def choose_raw_path(self) :
+        """Gets called when choosing raw path"""
         self.rawPath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Raw Data (*.fif, *.sef)")
         self.ui.rawLine.setText(self.rawPath)
         self.ui.mrkLine.setText(self.rawPath + '.mrk')
 
     def choose_mrk_path(self) :
+        """Gets called when choosing marker path"""
         self.mrkPath, _ = QFileDialog.getOpenFileName(self,"Choose markers path", "mrk files (*.mrk)")
         self.ui.mrkLine.setText(self.mrkPath)
         self.set_mrk_box()
