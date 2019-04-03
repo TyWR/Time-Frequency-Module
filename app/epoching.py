@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from app.epoching_UI import EpochingWindowUI
 
-
 class EpochingWindow(QDialog):
     def __init__(self, parent=None):
         super(EpochingWindow, self).__init__(parent)

@@ -31,7 +31,9 @@ class AvgTFRWindow(QDialog):
     def set_canvas(self) :
         """setup canvas for matplotlib"""
         self.ui.figure = plt.figure(figsize = (10,10))
+        self.ui.figure.patch.set_facecolor('None')
         self.ui.canvas = FigureCanvas(self.ui.figure)
+        self.ui.canvas.setStyleSheet("background-color:transparent;")
         # Matplotlib toolbar
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.matplotlibLayout.addWidget(self.ui.toolbar)

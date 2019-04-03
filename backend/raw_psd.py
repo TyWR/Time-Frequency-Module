@@ -32,9 +32,13 @@ class RawPSD :
         """
         # Create a a sub instance of raw with the picked channels
         raw.load_data()
-        raw_picked = raw.copy()
-        raw_picked.pick_channels([raw.info['ch_names'][i] for i in picks])
-        self.picked_info = raw_picked.info
+        if picks is not None :
+            raw_picked = raw.copy()
+            raw_picked.pick_channels([raw.info['ch_names'][i] for i in picks])
+            self.picked_info = raw_picked.info
+        else :
+            raw_picked = raw
+            self.picked_info = raw.info
 
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax

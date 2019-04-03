@@ -57,7 +57,9 @@ class RawPSDWindow(QDialog):
     def set_canvas(self) :
         """setup canvas for matplotlib"""
         self.ui.figure = plt.figure(figsize = (10,10))
+        self.ui.figure.patch.set_facecolor('None')
         self.ui.canvas = FigureCanvas(self.ui.figure)
+        self.ui.canvas.setStyleSheet("background-color:transparent;")
         cid            = self.ui.canvas.mpl_connect('button_press_event', self.__onclick__)
         self.cursor    = ()
 

@@ -141,7 +141,7 @@ class MenuWindow(QMainWindow) :
             else :
                 return picked_ch
         except :
-            self.show_error('No eeg data initialized')
+            self.show_error('Please initialize the EEG data before proceeding.')
 
     #---------------------------------------------------------------------
     def read_parameters(self, tfr = False) :
@@ -202,8 +202,10 @@ class MenuWindow(QMainWindow) :
         else :
             if self.dataType == 'epochs' :
                 self.open_epochs_psd_visualizer()
-            if self.dataType == 'raw' :
+            elif self.dataType == 'raw' :
                 self.open_raw_psd_visualizer()
+            else :
+                self.show_error("Please initialize the EEG data before proceeding.")
 
     #---------------------------------------------------------------------
     def init_nfft(self) :
@@ -422,7 +424,7 @@ class MenuWindow(QMainWindow) :
         except AttributeError :
             index = self.ui.electrodeMontage.findText('No coordinates')
             self.ui.electrodeMontage.setCurrentIndex(index)
-            self.show_error("EEG Data not yet initialized. Please initialize the data before proceeding.")
+            self.show_error("Please initialize the EEG data before proceeding.")
         except :
             self.show_error("Cannot read .xyz file :(")
             index = self.ui.electrodeMontage.findText('No coordinates')
@@ -492,7 +494,7 @@ class MenuWindow(QMainWindow) :
             picker = PickChannels(self, channels, self.selected_ch)
             picker.exec_()
         except :
-            self.show_error('No EEG Data initialized')
+            self.show_error('Please initialize the EEG data before proceeding.')
 
     def set_selected_ch(self, selected) :
         """Set selected channels"""

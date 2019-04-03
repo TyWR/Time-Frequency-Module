@@ -33,10 +33,14 @@ class EpochsPSD :
     def __init__(self, epochs, fmin = 0, fmax = 1500, tmin = None, tmax = None, method = 'multitaper', picks = None, **kwargs) :
         """Computes the PSD of the epochs with the correct method multitaper or welch"""
         # Create a a sub instance of raw with the picked channels
-        ch_names = [epochs.info['ch_names'][i] for i in picks]
-        epochs_picked = epochs.copy()
-        epochs_picked.pick_channels(ch_names)
-        self.picked_info = epochs_picked.info
+        if picks is not None :
+            ch_names = [epochs.info['ch_names'][i] for i in picks]
+            epochs_picked = epochs.copy()
+            epochs_picked.pick_channels(ch_names)
+            self.picked_info = epochs_picked.info
+        else :
+            epochs_picked = epochs
+            self.picked_info = epochs.info
 
         self.fmin, self.fmax    = fmin, fmax
         self.tmin, self.tmax    = tmin, tmax
