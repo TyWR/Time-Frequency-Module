@@ -225,7 +225,7 @@ class EpochsPSD :
 
         f = open(path, 'wb')
         for car in 'SE01' :
-            f.write(struct.pack('c', bytes(car, 'utf-8')))
+            f.write(struct.pack('c', bytes(car, 'ASCII')))
         f.write(struct.pack('I', n_channels))
         f.write(struct.pack('I', 0))
         f.write(struct.pack('I', num_freq_frames))
@@ -241,7 +241,7 @@ class EpochsPSD :
         for name in self.info['ch_names'] :
             n = 0
             for car in name :
-                f.write(struct.pack('c', bytes(car, 'utf-8')))
+                f.write(struct.pack('c', bytes(car, 'ASCII')))
                 n += 1
             while n < 8 :
                 f.write(struct.pack('x'))
