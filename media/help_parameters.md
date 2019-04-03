@@ -46,8 +46,6 @@ You can either work with a variable time-window by choosing a fixed n_cycles (nu
 
 `n_cycles` : Number of cycles. *This enables to control the frequency precision. A higher number of cycles means a better frequency precision. Be careful, because if too much cycles are used, it can be an issue for lower frequencies as it will require a very long signal to fit.*
 
-`picked_channels` : Channels to be displayed. Can take several values and you can select all the channels by putting Default (discouraged because long computation time).
-
 ##### Multitaper Method
 
 `time_bandwidth` : Time-Bandwidth product. *A high Time-Bandwidth product enables more smoothing, and a better frequency precision. It is equal to the product of the time-window by the bandwidth*
