@@ -181,6 +181,16 @@ class MenuWindow(QMainWindow) :
             self.show_error("Names of electrodes don't fit convention")
 
     #=====================================================================
+    # Open epoching window
+    #=====================================================================
+    def open_epoching_window(self) :
+        from app.epoching import EpochingWindow
+
+        window = EpochingWindow()
+        window.ui.rawLine.setText(self.filePath)
+        window.exec_()
+
+    #=====================================================================
     # Open PSD Visualizer
     #=====================================================================
     def open_psd_visualizer(self) :
@@ -197,7 +207,9 @@ class MenuWindow(QMainWindow) :
 
     #---------------------------------------------------------------------
     def init_nfft(self) :
+        """Init the n_fft parameter"""
         from backend.util import int_
+
         n_fft    = int_(self.params.get('n_fft', None))
         if n_fft is None :
             if self.dataType == 'raw' :
@@ -206,6 +218,7 @@ class MenuWindow(QMainWindow) :
                 n_fft = len(self.eeg_data.times)
         return n_fft
 
+    #---------------------------------------------------------------------
     def init_epochs_psd(self) :
         """Initialize the instance of EpochsPSD"""
         from backend.epochs_psd import EpochsPSD
@@ -282,26 +295,11 @@ class MenuWindow(QMainWindow) :
         psdVisualizer.show()
 
     #=====================================================================
-    # Open epoching window
+    # Open TFR Visualizer
     #=====================================================================
-    def open_epoching_window(self) :
-        from app.epoching import EpochingWindow
-
-        window = EpochingWindow()
-        window.ui.rawLine.setText(self.filePath)
-        window.exec_()
-
-    #=====================================================================
-    # Open TFR Window
-    #=====================================================================
-    def init_avg_tfr(self) :
-        """Init tfr from parameters"""
-        from backend.avg_epochs_tfr import AvgEpochsTFR
+    def init_ncycles(self, freqs) :
+        """Init the n_cycles parameter"""
         from backend.util import float_
-        from numpy import arange
-
-        fmin, fmax, step = float_(self.params['fmin']), float_(self.params['fmax']), float_(self.params.get('freq_step', 1))
-        freqs = arange(fmin, fmax, step)
 
         # Handling of the time window parameter for multitaper and morlet method
         n_cycles = 0
@@ -314,22 +312,40 @@ class MenuWindow(QMainWindow) :
                     raise ValueError("Not enough parameters found")
                 else :
                     n_cycles = freqs * time_window
+        return n_cycles
 
-        try : n_fft = int(self.params.get('n_fft', None))
-        except TypeError : n_fft = None
+    #---------------------------------------------------------------------
+    def init_avg_tfr(self) :
+        """Init tfr from parameters"""
+        from backend.avg_epochs_tfr import AvgEpochsTFR
+        from backend.util import float_, int_
+        from numpy import arange
+
+        fmin     = float_(self.params['fmin'])
+        fmax     = float_(self.params['fmax'])
+        step     = float_(self.params.get('freq_step', 1))
+        freqs    = arange(fmin, fmax, step)
+        n_cycles = self.init_ncycles(freqs)
+        n_fft    = int_(self.params.get('n_fft', None))
 
         try : picks = self.init_picks()
         except : self.show_error("404, a name was not found :(")
-        else :
-            if picks is None :
-                self.show_infos("All channels selected. Computing may be long")
 
-        self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
+        try :
+            self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
                                    method         = self.ui.tfrMethodBox.currentText(),
                                    time_bandwidth = float_(self.params.get('time_bandwidth', 4.)),
                                    n_fft          = n_fft,
                                    width          = float_(self.params.get('width', 1)),
                                    picks          = picks)
+        except ValueError :
+            self.show_error("Time-Window or n_cycles is too high for the length of the signal :(\n" +
+                            "Please use a smaller Time-Window or less cycles.")
+        except AttributeError :
+            self.show_error("Please initialize the EEG data before proceeding.")
+        else :
+            if picks is None :
+                self.show_infos("All channels selected. Computing may be long")
 
     #---------------------------------------------------------------------
     def open_tfr_visualizer(self) :
@@ -413,7 +429,7 @@ class MenuWindow(QMainWindow) :
             self.ui.electrodeMontage.setCurrentIndex(index)
 
     #=====================================================================
-    #Choosing save file path
+    # Saving
     #=====================================================================
     def choose_save_path(self) :
         """Open window for choosing save path"""
@@ -444,18 +460,26 @@ class MenuWindow(QMainWindow) :
             self.read_parameters()
             self.show_infos(self.init_info_string())
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file :(\nPlease verify the path and extension")            
+            self.show_error("Can't find/read file :(\nPlease verify the path and extension")
 
     #---------------------------------------------------------------------
     def init_info_string(self) :
         """Init a string with informations about data"""
-        infos = "Sampling Frequency : {}\nNumber of Channels : {}\n".format(
-                self.eeg_data.info["sfreq"], self.eeg_data.info["nchan"])
+        sfreq      = self.eeg_data.info["sfreq"]
+        n_channels = self.eeg_data.info["nchan"]
+        infos1     = "Sampling Frequency : {}\nNumber of Channels : {}".format(
+                     sfreq, n_channels)
         if self.dataType == 'raw' :
-            infos = infos + "Time points : {}".format(self.eeg_data.n_times)
+            n_times = self.eeg_data.n_times
+            infos2 = "\nTime points : {}".format(n_times)
+            infos3 = "\nDuration of the signal : {0:.2f}s".format(n_times / sfreq)
+
         if self.dataType == 'epochs' :
-            infos = infos + "Time points per Epoch : {}".format(len(self.eeg_data.times))
-        return infos
+            times  = self.eeg_data.times
+            infos2 = "\nTime points per Epoch : {}".format(len(times))
+            infos3 = "\nDuration of the signal : {0:.2f}s".format(times[-1] - times[0])
+
+        return infos1 + infos2 + infos3
 
     #=====================================================================
     # Channel picker
