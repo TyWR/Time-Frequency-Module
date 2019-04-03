@@ -142,4 +142,5 @@ def read_sef(path, montage = None) :
 
     ch_types = ['eeg' for i in range(n_channels)]
     infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
+    print(version)
     return RawArray(np.transpose(data), infos)

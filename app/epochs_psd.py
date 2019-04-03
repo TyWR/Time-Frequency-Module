@@ -26,7 +26,6 @@ class EpochsPSDWindow(QDialog):
         self.set_canvas()
         self.set_initial_values()
         self.set_bindings()
-        self.set_recap()
         self.plot_change()
 
     #=====================================================================
@@ -78,11 +77,6 @@ class EpochsPSDWindow(QDialog):
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
         self.ui.figureLayout.addWidget(self.ui.canvas)
-
-    #---------------------------------------------------------------------
-    def set_recap(self) :
-        """Write the reminder of parameters at the bottom of the window"""
-        self.ui.recapLabel.setText(self.psd.recap())
 
     #=====================================================================
     # Main Plotting function

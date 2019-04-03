@@ -156,7 +156,8 @@ class RawPSD :
         sfreq = float(1 / freq_step)
 
         f = open(path, 'wb')
-        f.write(struct.pack('I', 0))
+        for car in 'SE01' :
+            f.write(struct.pack('c', bytes(car, 'ASCII')))
         f.write(struct.pack('I', n_channels))
         f.write(struct.pack('I', 0))
         f.write(struct.pack('I', num_freq_frames))
@@ -172,14 +173,14 @@ class RawPSD :
         for name in self.info['ch_names'] :
             n = 0
             for car in name :
-                f.write(struct.pack('c', bytes(car, 'utf-8')))
+                f.write(struct.pack('c', bytes(car, 'ASCII')))
                 n += 1
             while n < 8 :
                 f.write(struct.pack('x'))
                 n += 1
 
-        data = np.reshape(self.data, (1, n_channels * num_freq_frames))
+        data = self.data.astype(np.float32)
+        data = np.reshape(data, n_channels * num_freq_frames, order='F')
         data.tofile(f)
-
         f.close()
         print("done !")
