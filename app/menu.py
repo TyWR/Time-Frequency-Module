@@ -464,7 +464,7 @@ class MenuWindow(QMainWindow) :
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file :(\nPlease verify the path and extension")
 
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     def init_info_string(self) :
         """Init a string with informations about data"""
         sfreq      = self.eeg_data.info["sfreq"]

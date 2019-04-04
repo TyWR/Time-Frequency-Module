@@ -8,7 +8,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-
 class Ui_MenuWindow(object):
     def setupUi(self, MenuWindow):
         MenuWindow.setObjectName("MenuWindow")

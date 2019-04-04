@@ -35,11 +35,8 @@ class EpochsPSD :
         # Create a a sub instance of raw with the picked channels
         if picks is not None :
             ch_names = [epochs.info['ch_names'][i] for i in picks]
-            epochs_picked = epochs.copy()
-            epochs_picked.pick_channels(ch_names)
-            self.picked_info = epochs_picked.info
+            self.picked_info = epochs.copy().pick_channels(ch_names).info
         else :
-            epochs_picked = epochs
             self.picked_info = epochs.info
 
         self.fmin, self.fmax    = fmin, fmax
@@ -59,13 +56,14 @@ class EpochsPSD :
 
             print("Computing Mulitaper PSD with parameter bandwidth = {} on ".format(
                   self.bandwidth))
-            self.data, self.freqs = psd_multitaper(epochs_picked,
+            self.data, self.freqs = psd_multitaper(epochs,
                                                    fmin             = fmin,
                                                    fmax             = fmax,
                                                    tmin             = tmin,
                                                    tmax             = tmax,
                                                    normalization    = 'full',
-                                                   bandwidth        = self.bandwidth)
+                                                   bandwidth        = self.bandwidth,
+                                                   picks            = picks)
 
         if method == 'welch'      :
             from mne.time_frequency import psd_welch
@@ -79,7 +77,8 @@ class EpochsPSD :
                                               tmax      = tmax,
                                               n_fft     = self.n_fft,
                                               n_overlap = self.n_overlap,
-                                              n_per_seg = self.n_per_seg)
+                                              n_per_seg = self.n_per_seg,
+                                              picks     = picks)
 
     #--------------------------------------------------------------------------------------------------------
     def __str__(self) :

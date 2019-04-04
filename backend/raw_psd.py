@@ -33,11 +33,9 @@ class RawPSD :
         # Create a a sub instance of raw with the picked channels
         raw.load_data()
         if picks is not None :
-            raw_picked = raw.copy()
-            raw_picked.pick_channels([raw.info['ch_names'][i] for i in picks])
-            self.picked_info = raw_picked.info
+            picked_ch = [raw.info['ch_names'][i] for i in picks]
+            self.picked_info = raw.copy().pick_channels(picked_ch).info
         else :
-            raw_picked = raw
             self.picked_info = raw.info
 
         self.fmin, self.fmax = fmin, fmax
@@ -55,27 +53,29 @@ class RawPSD :
             from mne.time_frequency import psd_multitaper
 
             print("Computing Mulitaper PSD with parameter bandwidth = {}".format(self.bandwidth))
-            self.data, self.freqs = psd_multitaper(raw_picked,
+            self.data, self.freqs = psd_multitaper(raw,
                                                    fmin             = fmin,
                                                    fmax             = fmax,
                                                    tmin             = tmin,
                                                    tmax             = tmax,
                                                    normalization    = 'full',
-                                                   bandwidth        = self.bandwidth)
+                                                   bandwidth        = self.bandwidth,
+                                                   picks = picks)
 
         if method == 'welch'      :
             from mne.time_frequency import psd_welch
 
             print("Computing Welch PSD with parameters n_fft = {}, n_per_seg = {}, n_overlap = {}".format(
                   self.n_fft, self.n_per_seg, self.n_overlap))
-            self.data, self.freqs = psd_welch(raw_picked,
+            self.data, self.freqs = psd_welch(raw,
                                               fmin      = fmin,
                                               fmax      = fmax,
                                               tmin      = tmin,
                                               tmax      = tmax,
                                               n_fft     = self.n_fft,
                                               n_overlap = self.n_overlap,
-                                              n_per_seg = self.n_per_seg)
+                                              n_per_seg = self.n_per_seg,
+                                              picks = picks)
 
     #--------------------------------------------------------------------------------------------------------
     def plot_topomap(self, freq_index, axes = None, log_display = False) :
