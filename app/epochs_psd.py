@@ -12,13 +12,14 @@ from app.epochs_psd_UI import Ui_EpochsPSDWindow
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
 class EpochsPSDWindow(QDialog):
-    def __init__(self, epochsPSD, parent=None):
+    def __init__(self, epochsPSD, montage, parent=None):
         super(EpochsPSDWindow, self).__init__(parent)
         self.psd = epochsPSD
         self.ui = Ui_EpochsPSDWindow()
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
         self.setup_window()
+        self.setup_topomaps(montage)
 
     #---------------------------------------------------------------------
     def setup_window(self) :
@@ -77,6 +78,16 @@ class EpochsPSDWindow(QDialog):
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
         self.ui.figureLayout.addWidget(self.ui.canvas)
+
+    def setup_topomaps(self, montage) :
+        """Init parameters for topomap plots"""
+        try :
+            pos = montage.get_pos2d()
+            scale = 0.85 / (pos.max(axis=0) - pos.min(axis=0))
+            center = 0.5 * (pos.max(axis=0) + pos.min(axis=0))
+            self.head_pos = {'scale': scale, 'center': center}
+        except :
+            self.head_pos = None
 
     #=====================================================================
     # Main Plotting function
@@ -154,7 +165,8 @@ class EpochsPSDWindow(QDialog):
             ax = self.ui.figure.add_subplot(1, nbFrames, 1)
             self.cbar_image, _ = self.psd.plot_topomap_band(epoch_index, f_index_min, f_index_max,
                                                             axes = ax, vmin = self.vmin, vmax = vmax,
-                                                            log_display = self.log)
+                                                            log_display = self.log,
+                                                            head_pos = self.head_pos)
             ax.set_title("Epoch {}".format(epoch_index + 1), fontsize = 15, fontweight = 'light')
 
         # plot average data if showMean is checked
@@ -162,7 +174,7 @@ class EpochsPSDWindow(QDialog):
             ax = self.ui.figure.add_subplot(1, nbFrames, nbFrames)
             self.cbar_image, _ = self.psd.plot_avg_topomap_band(f_index_min, f_index_max, axes = ax,
                                                                 vmin = self.vmin, vmax = vmax,
-                                                                log_display = self.log)
+                                                                log_display = self.log, head_pos = self.head_pos)
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 
     #---------------------------------------------------------------------

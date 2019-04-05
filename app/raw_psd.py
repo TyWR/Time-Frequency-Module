@@ -10,24 +10,25 @@ from math import floor
 from app.raw_psd_UI import Ui_RawPSDWindow
 
 class RawPSDWindow(QDialog):
-    def __init__(self, rawPSD, parent=None):
+    def __init__(self, rawPSD, montage, parent=None):
         super(RawPSDWindow, self).__init__(parent)
         self.psd = rawPSD
         self.ui = Ui_RawPSDWindow()
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
         self.setup_window()
+        self.setup_topomaps(montage)
 
-    #---------------------------------------------------------------------
+    #------------------------------------------------------------------------
     def setup_window(self) :
         self.set_canvas()
         self.set_initial_values()
         self.set_bindings()
         self.plot_change()
 
-    #=====================================================================
+    #========================================================================
     # Setup functions
-    #=====================================================================
+    #========================================================================
     def set_initial_values(self) :
         """Setup initial values"""
         self.ui.frequencySlider.setMaximum(len(self.psd.freqs)-1)
@@ -43,7 +44,7 @@ class RawPSDWindow(QDialog):
         self.ui.selectPlotType.addItem("PSD Matrix")
         self.ui.selectPlotType.addItem("Topomap")
 
-    #---------------------------------------------------------------------
+    #------------------------------------------------------------------------
     def set_bindings(self) :
         """Set Bindings"""
         self.ui.fmin.editingFinished.connect(self.value_changed)
@@ -53,7 +54,7 @@ class RawPSDWindow(QDialog):
         self.ui.displayLog.stateChanged.connect(self.value_changed)
         self.ui.frequencySlider.valueChanged.connect(self.slider_changed)
 
-    #---------------------------------------------------------------------
+    #------------------------------------------------------------------------
     def set_canvas(self) :
         """setup canvas for matplotlib"""
         self.ui.figure = plt.figure(figsize = (10,10))
@@ -68,10 +69,19 @@ class RawPSDWindow(QDialog):
         self.ui.figureLayout.addWidget(self.ui.toolbar)
         self.ui.figureLayout.addWidget(self.ui.canvas)
 
+    def setup_topomaps(self, montage) :
+        """Init parameters for topomap plots"""
+        try :
+            pos = montage.get_pos2d()
+            scale = 0.85 / (pos.max(axis=0) - pos.min(axis=0))
+            center = 0.5 * (pos.max(axis=0) + pos.min(axis=0))
+            self.head_pos = {'scale': scale, 'center': center}
+        except :
+            self.head_pos = None
 
-    #=====================================================================
+    #========================================================================
     # Main Plotting function
-    #=====================================================================
+    #========================================================================
     def plot_psd(self, f_index_min, f_index_max, vmax) :
         """Plot the correct type of PSD"""
         if self.plotType == "Topomap" :
@@ -86,7 +96,8 @@ class RawPSDWindow(QDialog):
         ax = self.ui.figure.add_subplot(1, 1, 1)
         self.cbar_image, _ = self.psd.plot_topomap_band(f_index_min, f_index_max, axes = ax,
                                                         vmin = self.vmin, vmax = vmax,
-                                                        log_display = self.log)
+                                                        log_display = self.log,
+                                                        head_pos = self.head_pos)
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
         self.ui.figure.subplots_adjust(top = 0.9, right = 0.8, left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()

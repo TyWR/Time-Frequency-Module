@@ -31,6 +31,7 @@ class MenuWindow(QMainWindow) :
         self.filePath = ''
         self.dataType = None
         self.selected_ch = []
+        self.montage = None
 
     #---------------------------------------------------------------------
     def set_bindings(self) :
@@ -125,11 +126,12 @@ class MenuWindow(QMainWindow) :
         montage = self.ui.electrodeMontage.currentText()
         if montage == 'Use xyz file' :
             from backend.util import xyz_to_montage
-            montage = xyz_to_montage(self.ui.xyzPath.text())
-            self.eeg_data.set_montage(montage)
+            self.montage = xyz_to_montage(self.ui.xyzPath.text())
+            self.eeg_data.set_montage(self.montage)
         elif montage != 'No coordinates' :
             from mne.channels import read_montage
-            self.eeg_data.set_montage(read_montage(montage))
+            self.montage = read_montage(montage)
+            self.eeg_data.set_montage(self.montage)
 
     #---------------------------------------------------------------------
     def init_picks(self) :
@@ -284,8 +286,9 @@ class MenuWindow(QMainWindow) :
         from app.epochs_psd import EpochsPSDWindow
 
         self.init_epochs_psd()
-        psdVisualizer = EpochsPSDWindow(self.psd)
+        psdVisualizer = EpochsPSDWindow(self.psd, self.montage)
         psdVisualizer.show()
+
 
     #---------------------------------------------------------------------
     def open_raw_psd_visualizer(self) :
@@ -293,7 +296,7 @@ class MenuWindow(QMainWindow) :
         from app.raw_psd import RawPSDWindow
 
         self.init_raw_psd()
-        psdVisualizer = RawPSDWindow(self.psd)
+        psdVisualizer = RawPSDWindow(self.psd, self.montage)
         psdVisualizer.show()
 
     #=====================================================================

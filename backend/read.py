@@ -2,7 +2,8 @@ import numpy as np
 
 def read_ep(path, **kwargs) :
     """
-    Reads file with format .ep, and returns a mne.io.Raw object containing the data.
+    Reads file with format .ep, and returns a mne.io.Raw object containing
+    the data.
 
     Arguments :
     ============
@@ -35,21 +36,27 @@ def read_ep(path, **kwargs) :
             # ch_name argument
             if key == 'ch_names' :
                 if len(value) != n_channels :
-                    raise ValueError("length of ch_names is {} whereas n_channel = {}".format(len(value), n_channels))
+                    raise ValueError(
+                        "length of ch_names is {} whereas n_channel = {}"
+                        .format(len(value), n_channels))
                 ch_names = value
             # sfreq argument
             elif key == 'sfreq' : sfreq = value
             # montage argument
             elif key == 'montage' : montage = value
             # keyword error
-            else : raise ValueError("Incorrect keyword, must be ch_names, sfreq or montage")
+            else :
+                raise ValueError(
+                    "Incorrect keyword, must be ch_names, sfreq or montage")
 
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
+    infos = create_info(ch_names = ch_names, sfreq   = sfreq,
+                        ch_types = ch_types, montage = montage)
     return RawArray(data, infos)
 
 def read_eph(path, **kwargs) :
     """
-    Reads file with format .ep, and returns a mne.io.Raw object containing the data.
+    Reads file with format .ep, and returns a mne.io.Raw object containing the
+    data.
 
     Arguments :
     ============
@@ -85,19 +92,24 @@ def read_eph(path, **kwargs) :
 
             if key == 'ch_names' :
                 if len(value) != n_channels :
-                    raise ValueError("length of ch_names is {} whereas n_channel = {}".format(len(value), n_channels))
+                    raise ValueError(
+                        "length of ch_names is {} whereas n_channel = {}"
+                        .format(len(value), n_channels))
                 ch_names = value
 
             elif key == 'montage' : montage = value
 
-            else : raise ValueError("Incorrect keyword must be ch_names or montage")
+            else :
+                raise ValueError("Incorrect keyword")
 
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
+    infos = create_info(ch_names = ch_names, sfreq   = sfreq,
+                        ch_types = ch_types, montage = montage)
     return RawArray(data, infos)
 
 def read_sef(path, montage = None) :
     """
-    Reads file with format .sef, and returns a mne.io.Raw object containing the data.
+    Reads file with format .sef, and returns a mne.io.Raw object containing
+    the data.
 
     Arguments :
     ============
@@ -137,10 +149,14 @@ def read_sef(path, montage = None) :
         ch_names.append(re.sub('[^0-9a-zA-Z]+', '', name))
 
     # Read data
-    buffer = np.frombuffer(f.read(n_channels * num_time_frames * 8), dtype=np.float32, count = n_channels * num_time_frames)
+    buffer = np.frombuffer(
+        f.read(n_channels * num_time_frames * 8),
+        dtype=np.float32,
+        count = n_channels * num_time_frames)
     data = np.reshape(buffer, (num_time_frames, n_channels))
 
     ch_types = ['eeg' for i in range(n_channels)]
-    infos = create_info(ch_names = ch_names, sfreq = sfreq, ch_types = ch_types, montage = montage)
-    print(version)
+    infos = create_info(
+        ch_names = ch_names, sfreq   = sfreq,
+        ch_types = ch_types, montage = montage)
     return RawArray(np.transpose(data), infos)
