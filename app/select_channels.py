@@ -18,17 +18,10 @@ class PickChannels(QDialog) :
         """Initialize button box"""
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok |
                                           QDialogButtonBox.Cancel)
-<<<<<<< HEAD
         (self.buttonbox.button(QDialogButtonBox.Ok)
         .clicked.connect(self.close))
         (self.buttonbox.button(QDialogButtonBox.Cancel)
         .clicked.connect(self.close))
-=======
-        self.buttonbox.button(QDialogButtonBox.Ok)
-        .clicked.connect(self.close)
-        self.buttonbox.button(QDialogButtonBox.Cancel)
-        .clicked.connect(self.close)
->>>>>>> 622f0188ebfa044629477d426019731cae8f251b
         self.layout.addWidget(self.buttonbox)
 
     def init_channel_box(self, channels, selected) :
