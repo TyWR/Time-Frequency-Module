@@ -1,10 +1,3 @@
-"""
-==============================================================================
-                                    util
-
-This file contains different utility functions
-==============================================================================
-"""
 def xyz_to_montage(path) :
     """Reads and convert xyz positions to a mne montage type"""
     from mne.channels import Montage

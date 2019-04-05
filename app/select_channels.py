@@ -7,7 +7,8 @@ class PickChannels(QDialog) :
         self.setWindowTitle("Pick Channels")
         self.initial_selection = selected
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(QLabel("Please select all scalp channels \nfor a correct topomap plotting"))
+        self.layout.addWidget(QLabel("Please select all scalp channels \n"
+                                     + "for a correct topomap plotting"))
         self.init_channel_box(channels, selected)
         self.init_buttonbox()
         self.ch.itemSelectionChanged.connect(self.init_buttons)
@@ -17,10 +18,11 @@ class PickChannels(QDialog) :
         """Initialize button box"""
         self.buttonbox = QDialogButtonBox(QDialogButtonBox.Ok |
                                           QDialogButtonBox.Cancel)
-        self.buttonbox.button(QDialogButtonBox.Ok).clicked.connect(self.close)
-        self.buttonbox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
+        (self.buttonbox.button(QDialogButtonBox.Ok)
+        .clicked.connect(self.close))
+        (self.buttonbox.button(QDialogButtonBox.Cancel)
+        .clicked.connect(self.close))
         self.layout.addWidget(self.buttonbox)
-
 
     def init_channel_box(self, channels, selected) :
         """Initialize list"""

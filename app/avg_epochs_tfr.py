@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg \
+    import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg \
+    import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
 from app.avg_epochs_tfr_UI import Ui_AvgTFRWindow
@@ -123,14 +125,16 @@ class AvgTFRWindow(QDialog):
         """Plot the time-frequency representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image = self.avg.plot_time_freq(self.index, ax, vmax = self.vmax)
+        self.cbar_image = self.avg.plot_time_freq(
+            self.index, ax, vmax = self.vmax)
         ax.set_title("Time-Frequency Plot - Channel {}".format(
                      self.avg.info['ch_names'][self.avg.picks[self.index]]),
                      fontsize = 15, fontweight = 'light')
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Frequencies (Hz)')
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
-        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8,
+                                       left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
     #---------------------------------------------------------------------
@@ -138,15 +142,18 @@ class AvgTFRWindow(QDialog):
         """Plot the frequency-channel representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image = self.avg.plot_freq_ch(self.index, ax, vmax = self.vmax)
-        ax.set_title("Frequency-Channel Plot - Time {:.2f}s".format(self.avg.tfr.times[self.index]),
+        self.cbar_image = self.avg.plot_freq_ch(
+            self.index, ax, vmax = self.vmax)
+        ax.set_title(("Frequency-Channel Plot - Time {:.2f}s"
+                     .format(self.avg.tfr.times[self.index])),
                      fontsize = 15, fontweight = 'light')
         ax.set_xlabel('Frequencies (Hz)')
         ax.set_ylabel('Channels')
         ax.set_yticks([i for i in range(1,len(self.avg.picks)+1)])
         ax.set_yticklabels(self.avg.picks)
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
-        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8,
+                                       left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
     #---------------------------------------------------------------------
@@ -154,15 +161,18 @@ class AvgTFRWindow(QDialog):
         """Plot the time-channels representation"""
         self.ui.figure.clear()
         ax = self.ui.figure.add_subplot(1, 1, 1)
-        self.cbar_image = self.avg.plot_time_ch(self.index, ax, vmax = self.vmax)
-        ax.set_title("Time-Channel Plot - Frequency {:.2f}".format(self.avg.tfr.freqs[self.index]),
+        self.cbar_image = self.avg.plot_time_ch(
+            self.index, ax, vmax = self.vmax)
+        ax.set_title(("Time-Channel Plot - Frequency {:.2f}"
+                      .format(self.avg.tfr.freqs[self.index])),
                      fontsize = 15, fontweight = 'light')
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Channels')
         ax.set_yticks([i for i in range(1,len(self.avg.picks)+1)])
         ax.set_yticklabels(self.avg.picks)
         self.add_colorbar([0.915, 0.15, 0.01, 0.7])
-        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8, left = 0.1, bottom = 0.1)
+        self.ui.figure.subplots_adjust(top = 0.85, right = 0.8,
+                                       left = 0.1, bottom = 0.1)
         self.ui.canvas.draw()
 
     #---------------------------------------------------------------------

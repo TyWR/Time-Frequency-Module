@@ -44,7 +44,8 @@ class EpochsPSD :
 
     plot_single_psd             : Plot the PSD for a given epoch and channel
 
-    plot_single_avg_psd         : Plot the PSD averaged over epochs for a given chanel
+    plot_single_avg_psd         : Plot the PSD averaged over epochs for a given
+                                  channel
     """
 
     #------------------------------------------------------------------------
