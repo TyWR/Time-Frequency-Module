@@ -33,32 +33,65 @@ class MenuWindow(QMainWindow) :
         self.selected_ch = []
         self.montage = None
 
-    #---------------------------------------------------------------------
+    #------------------------------------------------------------------------
     def set_bindings(self) :
         """Set all the bindings"""
-        self.ui.psdButton.clicked.connect(self.open_psd_visualizer)
-        self.ui.tfrButton.clicked.connect(self.open_tfr_visualizer)
-        self.ui.pathButton.clicked.connect(self.choose_eeg_path)
-        self.ui.savePsdButton.clicked.connect(self.choose_save_path)
-        self.ui.plotData.clicked.connect(self.plot_data)
-        self.ui.displayDataButton.clicked.connect(self.display_data_infos)
-        self.ui.psdParametersButton.clicked.connect(self.choose_psd_parameters_path)
-        self.ui.tfrParametersButton.clicked.connect(self.choose_tfr_parameters_path)
-        self.ui.lineEdit.editingFinished.connect(self.eeg_path_changed)
-        self.ui.psdParametersLine.editingFinished.connect(self.psd_parameters_path_changed)
-        self.ui.psdMethod.currentIndexChanged.connect(self.init_psd_parameters)
-        self.ui.tfrMethodBox.currentIndexChanged.connect(self.init_tfr_parameters)
-        self.ui.epochingButton.clicked.connect(self.open_epoching_window)
-        self.ui.electrodeMontage.currentTextChanged.connect(self.choose_xyz_path)
-        self.ui.pushButton.clicked.connect(self.open_channel_picker)
+        (self.ui.psdButton.clicked
+        .connect(self.open_psd_visualizer))
 
-    #---------------------------------------------------------------------
+        (self.ui.tfrButton.clicked
+        .connect(self.open_tfr_visualizer))
+
+        (self.ui.pathButton.clicked
+        .connect(self.choose_eeg_path))
+
+        (self.ui.savePsdButton.clicked
+        .connect(self.choose_save_path))
+
+        (self.ui.plotData.clicked
+        .connect(self.plot_data))
+
+        (self.ui.displayDataButton.clicked
+        .connect(self.display_data_infos))
+
+        (self.ui.psdParametersButton.clicked
+        .connect(self.choose_psd_parameters_path))
+
+        (self.ui.tfrParametersButton.clicked
+        .connect(self.choose_tfr_parameters_path))
+
+        (self.ui.lineEdit.editingFinished
+        .connect(self.eeg_path_changed))
+
+        (self.ui.psdParametersLine.editingFinished
+        .connect(self.psd_parameters_path_changed))
+
+        (self.ui.psdMethod.currentIndexChanged
+        .connect(self.init_psd_parameters))
+
+        (self.ui.tfrMethodBox.currentIndexChanged
+        .connect(self.init_tfr_parameters))
+
+        (self.ui.epochingButton.clicked
+        .connect(self.open_epoching_window))
+
+        (self.ui.electrodeMontage.currentTextChanged
+        .connect(self.choose_xyz_path))
+
+        (self.ui.pushButton.clicked
+        .connect(self.open_channel_picker))
+
+    #------------------------------------------------------------------------
     def set_boxes(self) :
-        """Set the values of the combo boxes for file extension, coordinates and fourier methods"""
+        """
+        Set the values of the combo boxes for file extension,
+        coordinates and fourier methods
+        """
         for extension in ['.fif','-epo.fif','.sef', '.ep', '.eph'] :
             self.ui.chooseFileType.addItem(extension)
 
-        for method in ['No coordinates', 'Use xyz file', 'standard_1005', 'standard_1020'] :
+        for method in ['No coordinates', 'Use xyz file',
+                       'standard_1005', 'standard_1020'] :
             self.ui.electrodeMontage.addItem(method)
 
         self.ui.psdMethod.addItem('multitaper')
@@ -137,13 +170,15 @@ class MenuWindow(QMainWindow) :
     def init_picks(self) :
         """Init list with picks"""
         try :
-            picked_ch = [self.eeg_data.info['ch_names'].index(name) for name in self.selected_ch]
+            picked_ch = [self.eeg_data.info['ch_names'].index(name)
+                         for name in self.selected_ch]
             if len(picked_ch) == 0 :
                 return None
             else :
                 return picked_ch
         except :
-            self.show_error('Please initialize the EEG data before proceeding.')
+            self.show_error('Please initialize the EEG data before '
+                            + 'proceeding.')
 
     #---------------------------------------------------------------------
     def read_parameters(self, tfr = False) :
@@ -166,7 +201,8 @@ class MenuWindow(QMainWindow) :
                         dic[param] = [e for e in val]
 
         except ValueError :
-                self.show_error("Format of parameters must be param_id = values")
+                self.show_error("Format of parameters must be "
+                                + "param_id = values")
         self.params = dic
 
     #---------------------------------------------------------------------
@@ -178,7 +214,8 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.plot(scalings = 'auto')
             show()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file\nPlease verify the path and extension")
+            self.show_error("Can't find/read file\n"
+                            + "Please verify the path and extension")
         except (ValueError) :
             self.show_error("Names of electrodes don't fit convention")
 
@@ -200,14 +237,16 @@ class MenuWindow(QMainWindow) :
         try :
             self.read_parameters()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+            self.show_error("Can't find/read file.\n"
+                            + "Please verify the path and extension")
         else :
             if self.dataType == 'epochs' :
                 self.open_epochs_psd_visualizer()
             elif self.dataType == 'raw' :
                 self.open_raw_psd_visualizer()
             else :
-                self.show_error("Please initialize the EEG data before proceeding.")
+                self.show_error("Please initialize the EEG data "
+                                + "before proceeding.")
 
     #---------------------------------------------------------------------
     def init_nfft(self) :
@@ -237,8 +276,10 @@ class MenuWindow(QMainWindow) :
                                  tmax       = float_(self.params['tmax']),
                                  method     = 'welch',
                                  n_fft      = n_fft,
-                                 n_per_seg  = int_(self.params.get('n_per_seg', n_fft)),
-                                 n_overlap  = int_(self.params.get('n_overlap', 0)),
+                                 n_per_seg  = int_(self.params
+                                                   .get('n_per_seg', n_fft)),
+                                 n_overlap  = int_(self.params
+                                                   .get('n_overlap', 0)),
                                  picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
@@ -248,7 +289,8 @@ class MenuWindow(QMainWindow) :
                                  tmin       = float_(self.params['tmin']),
                                  tmax       = float_(self.params['tmax']),
                                  method     = 'multitaper',
-                                 bandwidth  = float_(self.params.get('bandwidth', 4)),
+                                 bandwidth  = float_(self.params
+                                                     .get('bandwidth', 4)),
                                  picks      = self.init_picks())
 
     #---------------------------------------------------------------------
@@ -266,8 +308,10 @@ class MenuWindow(QMainWindow) :
                               tmax       = float_(self.params['tmax']),
                               method     = 'welch',
                               n_fft      = n_fft,
-                              n_per_seg  = int_(self.params.get('n_per_seg', n_fft)),
-                              n_overlap  = int_(self.params.get('n_overlap', 0)),
+                              n_per_seg  = int_(self.params
+                                                .get('n_per_seg', n_fft)),
+                              n_overlap  = int_(self.params
+                                                .get('n_overlap', 0)),
                               picks      = self.init_picks())
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
@@ -277,7 +321,8 @@ class MenuWindow(QMainWindow) :
                               tmin       = float_(self.params['tmin']),
                               tmax       = float_(self.params['tmax']),
                               method     = 'multitaper',
-                              bandwidth  = int(self.params.get('bandwidth', 4)),
+                              bandwidth  = int(self.params
+                                               .get('bandwidth', 4)),
                               picks      = self.init_picks())
 
     #---------------------------------------------------------------------
@@ -313,7 +358,8 @@ class MenuWindow(QMainWindow) :
             if n_cycles is None :
                 time_window = float_(self.params.get('time_window', None))
                 if time_window is None :
-                    self.show_error('Please specify a number of cycles, or a time_window parameter')
+                    self.show_error('Please specify a number of cycles,'
+                                    + ' or a time_window parameter')
                     raise ValueError("Not enough parameters found")
                 else :
                     n_cycles = freqs * time_window
@@ -338,19 +384,23 @@ class MenuWindow(QMainWindow) :
 
         try :
             self.avgTFR = AvgEpochsTFR(self.eeg_data, freqs, n_cycles,
-                                   method         = self.ui.tfrMethodBox.currentText(),
-                                   time_bandwidth = float_(self.params.get('time_bandwidth', 4.)),
-                                   n_fft          = n_fft,
-                                   width          = float_(self.params.get('width', 1)),
-                                   picks          = picks)
+                method         = self.ui.tfrMethodBox.currentText(),
+                time_bandwidth = float_(self.params.get('time_bandwidth', 4)),
+                width          = float_(self.params.get('width', 1)),
+                n_fft          = n_fft,
+                picks          = picks)
         except ValueError :
-            self.show_error("Time-Window or n_cycles is too high for the length of the signal :(\n" +
-                            "Please use a smaller Time-Window or less cycles.")
+            self.show_error("Time-Window or n_cycles is too high for"
+                            + "the length of the signal :(\n"
+                            + "Please use a smaller Time-Window"
+                            + " or less cycles.")
         except AttributeError :
-            self.show_error("Please initialize the EEG data before proceeding.")
+            self.show_error("Please initialize the EEG data before"
+                            + " proceeding.")
         else :
             if picks is None :
-                self.show_infos("All channels selected. Computing may be long")
+                self.show_infos("All channels selected."
+                                + " Computing may be long")
 
     #---------------------------------------------------------------------
     def open_tfr_visualizer(self) :
@@ -360,7 +410,8 @@ class MenuWindow(QMainWindow) :
         try :
             self.read_parameters(tfr=True)
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+            self.show_error("Can't find/read file.\n"
+                            + "Please verify the path and extension")
         else :
             self.init_avg_tfr()
             psdVisualizer = AvgTFRWindow(self.avgTFR)
@@ -371,7 +422,8 @@ class MenuWindow(QMainWindow) :
     #=====================================================================
     def choose_eeg_path(self) :
         """Open window for choosing eeg path and updates the line"""
-        self.filePath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "")
+        self.filePath, _ = QFileDialog.getOpenFileName(
+                                self,"Choose data path", "")
         self.ui.lineEdit.setText(self.filePath)
         self.eeg_path_changed()
 
@@ -387,37 +439,45 @@ class MenuWindow(QMainWindow) :
             self.ui.chooseFileType.setCurrentIndex(index)
             self.read_eeg_data()
         except :
-            self.show_error("Cannot read eeg data :(\nPlease verifiy the path and extension")
+            self.show_error("Cannot read eeg data :(\n"
+                            + "Please verifiy the path and extension")
 
     #---------------------------------------------------------------------
     def choose_psd_parameters_path(self) :
         """Open window for choosing PSD parameters path"""
-        self.psdParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
+        self.psdParametersPath, _ = QFileDialog.getOpenFileName(
+                                        self,"Choose Parameters", "")
         self.ui.psdParametersLine.setText(self.psdParametersPath)
         try :
-            self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+            (self.ui.psdParametersText
+                .setText(open(self.psdParametersPath, 'r').read()))
         except :
             self.show_error('Path to parameters not found :(')
 
     #---------------------------------------------------------------------
     def choose_tfr_parameters_path(self) :
         """Open window for choosing TFR parameters path"""
-        self.tfrParametersPath, _ = QFileDialog.getOpenFileName(self,"Choose Parameters", "")
-        self.ui.tfrParametersLine.setText(self.tfrParametersPath)
-        self.ui.tfrParametersText.setText(open(self.tfrParametersPath, 'r').read())
+        self.tfrParametersPath, _ = QFileDialog.getOpenFileName(
+                                        self,"Choose Parameters", "")
+        (self.ui.tfrParametersLine
+            .setText(self.tfrParametersPath))
+        (self.ui.tfrParametersText
+            .setText(open(self.tfrParametersPath, 'r').read()))
 
     #---------------------------------------------------------------------
     def psd_parameters_path_changed(self) :
         """Gets called when PSD parameters are changed"""
         self.psdParametersPath = self.ui.psdParametersLine.text()
-        self.ui.psdParametersText.setText(open(self.psdParametersPath, 'r').read())
+        (self.ui.psdParametersText
+            .setText(open(self.psdParametersPath, 'r').read()))
 
     #---------------------------------------------------------------------
     def choose_xyz_path(self) :
         """Gets called when electrode montage box is updated"""
         try :
             if self.ui.electrodeMontage.currentText() == 'Use xyz file' :
-                self.xyzPath, _ = QFileDialog.getOpenFileName(self,"Choose .xyz file", "")
+                self.xyzPath, _ = QFileDialog.getOpenFileName(
+                                      self,"Choose .xyz file", "")
                 self.ui.xyzPath.setText(self.xyzPath)
                 self.read_montage()
             else :
@@ -427,7 +487,8 @@ class MenuWindow(QMainWindow) :
         except AttributeError :
             index = self.ui.electrodeMontage.findText('No coordinates')
             self.ui.electrodeMontage.setCurrentIndex(index)
-            self.show_error("Please initialize the EEG data before proceeding.")
+            self.show_error("Please initialize the EEG"
+                            + " data before proceeding.")
         except :
             self.show_error("Cannot read .xyz file :(")
             index = self.ui.electrodeMontage.findText('No coordinates')
@@ -442,7 +503,8 @@ class MenuWindow(QMainWindow) :
         try :
             self.read_parameters()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file :(\nPlease verify the path and extension")
+            self.show_error("Can't find/read file :(\n"
+                            + "Please verify the path and extension")
         else :
             if self.dataType == 'epochs' : self.init_epochs_psd()
             if self.dataType == 'raw'    : self.init_raw_psd()
@@ -465,24 +527,27 @@ class MenuWindow(QMainWindow) :
             self.read_parameters()
             self.show_infos(self.init_info_string())
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file :(\nPlease verify the path and extension")
+            self.show_error("Can't find/read file :(\n"
+                            + "Please verify the path and extension")
 
     # ---------------------------------------------------------------------
     def init_info_string(self) :
         """Init a string with informations about data"""
         sfreq      = self.eeg_data.info["sfreq"]
         n_channels = self.eeg_data.info["nchan"]
-        infos1     = "Sampling Frequency : {}\nNumber of Channels : {}".format(
+        infos1     = "Sampling Frequency:{}\nNumber of Channels : {}".format(
                      sfreq, n_channels)
         if self.dataType == 'raw' :
             n_times = self.eeg_data.n_times
-            infos2 = "\nTime points : {}".format(n_times)
-            infos3 = "\nDuration of the signal : {0:.2f}s".format(n_times / sfreq)
+            infos2 = "\nTime points:{}".format(n_times)
+            infos3 = "\nDuration of the signal:{0:.2f}s".format(
+                         (n_times / sfreq))
 
         if self.dataType == 'epochs' :
             times  = self.eeg_data.times
-            infos2 = "\nTime points per Epoch : {}".format(len(times))
-            infos3 = "\nDuration of the signal : {0:.2f}s".format(times[-1] - times[0])
+            infos2 = "\nTime points per Epoch:{}".format(len(times))
+            infos3 = "\nDuration of the signal:{0:.2f}s".format(
+                         times[-1] - times[0])
 
         return infos1 + infos2 + infos3
 
@@ -497,7 +562,8 @@ class MenuWindow(QMainWindow) :
             picker = PickChannels(self, channels, self.selected_ch)
             picker.exec_()
         except :
-            self.show_error('Please initialize the EEG data before proceeding.')
+            self.show_error("Please initialize the EEG data"
+                            + " before proceeding.")
 
     def set_selected_ch(self, selected) :
         """Set selected channels"""

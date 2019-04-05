@@ -1,9 +1,11 @@
+import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg \
+    import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg \
+    import NavigationToolbar2QT as NavigationToolbar
 
 from app.epoching_UI import EpochingWindowUI
 
@@ -64,13 +66,15 @@ class EpochingWindow(QDialog):
     #=====================================================================
     def choose_raw_path(self) :
         """Gets called when choosing raw path"""
-        self.rawPath, _ = QFileDialog.getOpenFileName(self,"Choose data path", "Raw Data (*.fif, *.sef)")
+        self.rawPath, _ = QFileDialog.getOpenFileName(
+            self,"Choose data path", "Raw Data (*.fif, *.sef)")
         self.ui.rawLine.setText(self.rawPath)
         self.ui.mrkLine.setText(self.rawPath + '.mrk')
 
     def choose_mrk_path(self) :
         """Gets called when choosing marker path"""
-        self.mrkPath, _ = QFileDialog.getOpenFileName(self,"Choose markers path", "mrk files (*.mrk)")
+        self.mrkPath, _ = QFileDialog.getOpenFileName(
+            self,"Choose markers path", "mrk files (*.mrk)")
         self.ui.mrkLine.setText(self.mrkPath)
         self.set_mrk_box()
 
@@ -103,22 +107,29 @@ class EpochingWindow(QDialog):
     # Data Visualization
     #=====================================================================
     def plot_raw(self) :
-        """Initialize the raw eeg data and plot the data on a matplotlib window"""
+        """
+        Initialize the raw eeg data and plot the data on a
+        matplotlib window
+        """
         try :
             self.read_raw()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file\nPlease verify the path and extension")
+            self.show_error("Can't find/read file\n"
+                            + "Please verify the path and extension")
         else :
             plt.close('all')
             self.raw.plot(scalings = 'auto')
             plt.show()
 
     def plot_events(self) :
-        """Initialize the events data and plot the data on a matplotlib window"""
+        """
+        Initialize the events data and plot the data on a matplotlib window
+        """
         try :
             self.read_events()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file\nPlease verify the path and extension")
+            self.show_error("Can't find/read file\n"
+                            + "Please verify the path and extension")
         else :
             plt.close('all')
             self.events.plot()
@@ -128,7 +139,9 @@ class EpochingWindow(QDialog):
     # Saving the data
     #=====================================================================
     def init_epochs(self) :
-        """Save epochs as -epo.fif file"""
+        """
+        Save epochs as -epo.fif file
+        """
         label = self.ui.chooseMrkBox.currentText()
         tmin = float(self.ui.tmin.text())
         tmax = float(self.ui.tmax.text())
@@ -140,7 +153,8 @@ class EpochingWindow(QDialog):
             self.read_raw()
             self.read_events()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+            self.show_error("Can't find/read file.\n"
+                            + "Please verify the path and extension")
         else :
             self.init_epochs().save(self.savePath)
 
@@ -149,7 +163,8 @@ class EpochingWindow(QDialog):
             self.read_raw()
             self.read_events()
         except (AttributeError, FileNotFoundError, OSError) :
-            self.show_error("Can't find/read file.\nPlease verify the path and extension")
+            self.show_error("Can't find/read file.\n"
+                            + "Please verify the path and extension")
         else :
             epochs = self.init_epochs()
             plt.close('all')
