@@ -42,18 +42,26 @@ class RawPSD :
     #--------------------------------------------------------------------------
     def __init__(self, raw, fmin = 0, fmax = 1500,
                  tmin = None, tmax = None,
-                 method = 'multitaper', picks=None, **kwargs) :
+                 method = 'multitaper', picks=None,
+                 montage = None, **kwargs) :
         """
         Computes the PSD of the raw file with the correct method, multitaper
         or welch.
         """
+        from numpy import array
         # Create a a sub instance of raw with the picked channels
-        raw.load_data()
+        if montage is not None :
+            self.pos = montage.get_pos2d()
+
         if picks is not None :
-            picked_ch = [raw.info['ch_names'][i] for i in picks]
-            self.picked_info = raw.copy().pick_channels(picked_ch).info
+            self.pos = array([self.pos[i] for i in picks])
+
+        if montage is not None :
+            scale = 0.85 / (self.pos.max(axis=0) - self.pos.min(axis=0))
+            center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
+            self.head_pos = {'scale': scale, 'center': center}
         else :
-            self.picked_info = raw.info
+            self.head_pos = None
 
         self.fmin, self.fmax = fmin, fmax
         self.tmin, self.tmax = tmin, tmax
@@ -99,8 +107,7 @@ class RawPSD :
                 picks = picks)
 
     #--------------------------------------------------------------------------
-    def plot_topomap(self, freq_index, axes = None, log_display = False,
-                     head_pos = None) :
+    def plot_topomap(self, freq_index, axes = None, log_display = False) :
         """
         Plot the map of the power for a given frequency chosen by freq_index,
         the frequency is hence the value self.freqs[freq_index]. This function
@@ -111,15 +118,14 @@ class RawPSD :
 
         psd_values = self.data[:, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
-        return plot_topomap(psd_values, self.picked_info, axes = axes,
+        return plot_topomap(psd_values, self.pos, axes = axes,
                             show = False, cmap = self.cmap,
-                            head_pos = head_pos)
+                            head_pos = self.head_pos)
 
     #--------------------------------------------------------------------------
     def plot_topomap_band(self, freq_index_min, freq_index_max,
                           vmin = None, vmax = None,
-                          axes = None, log_display = False,
-                          head_pos = None) :
+                          axes = None, log_display = False) :
         """
         Plot the map of the power for a given frequency band chosen by
         freq_index_min and freq_index_max, the frequency is hence the value
@@ -132,10 +138,10 @@ class RawPSD :
 
         psd_mean = mean(self.data[:, freq_index_min : freq_index_max], axis = 1)
         if log_display : psd_mean = 10 * log(psd_mean)
-        return plot_topomap(psd_mean, self.picked_info, axes = axes,
+        return plot_topomap(psd_mean, self.pos, axes = axes,
                             vmin = vmin, vmax = vmax,
                             show = False, cmap = self.cmap,
-                            head_pos = head_pos)
+                            head_pos = self.head_pos)
 
     #--------------------------------------------------------------------------
     def plot_matrix(self, freq_index_min, freq_index_max,

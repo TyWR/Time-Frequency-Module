@@ -280,7 +280,8 @@ class MenuWindow(QMainWindow) :
                                                    .get('n_per_seg', n_fft)),
                                  n_overlap  = int_(self.params
                                                    .get('n_overlap', 0)),
-                                 picks      = self.init_picks())
+                                 picks      = self.init_picks(),
+                                 montage    = self.montage)
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = EpochsPSD(self.eeg_data,
@@ -291,7 +292,8 @@ class MenuWindow(QMainWindow) :
                                  method     = 'multitaper',
                                  bandwidth  = float_(self.params
                                                      .get('bandwidth', 4)),
-                                 picks      = self.init_picks())
+                                 picks      = self.init_picks(),
+                                 montage    = self.montage)
 
     #---------------------------------------------------------------------
     def init_raw_psd(self) :
@@ -312,7 +314,8 @@ class MenuWindow(QMainWindow) :
                                                 .get('n_per_seg', n_fft)),
                               n_overlap  = int_(self.params
                                                 .get('n_overlap', 0)),
-                              picks      = self.init_picks())
+                              picks      = self.init_picks(),
+                              montage    = self.montage)
 
         if self.ui.psdMethod.currentText() == 'multitaper' :
             self.psd = RawPSD(self.eeg_data,
@@ -323,7 +326,8 @@ class MenuWindow(QMainWindow) :
                               method     = 'multitaper',
                               bandwidth  = int(self.params
                                                .get('bandwidth', 4)),
-                              picks      = self.init_picks())
+                              picks      = self.init_picks(),
+                              montage    = self.montage)
 
     #---------------------------------------------------------------------
     def open_epochs_psd_visualizer(self) :
@@ -331,9 +335,8 @@ class MenuWindow(QMainWindow) :
         from app.epochs_psd import EpochsPSDWindow
 
         self.init_epochs_psd()
-        psdVisualizer = EpochsPSDWindow(self.psd, self.montage)
+        psdVisualizer = EpochsPSDWindow(self.psd)
         psdVisualizer.show()
-
 
     #---------------------------------------------------------------------
     def open_raw_psd_visualizer(self) :
@@ -341,7 +344,7 @@ class MenuWindow(QMainWindow) :
         from app.raw_psd import RawPSDWindow
 
         self.init_raw_psd()
-        psdVisualizer = RawPSDWindow(self.psd, self.montage)
+        psdVisualizer = RawPSDWindow(self.psd)
         psdVisualizer.show()
 
     #=====================================================================

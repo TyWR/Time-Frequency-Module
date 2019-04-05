@@ -12,7 +12,7 @@ from app.epochs_psd_UI import Ui_EpochsPSDWindow
 File containing the PSDWindow class, which enable to visualize the PSDs
 """
 class EpochsPSDWindow(QDialog):
-    def __init__(self, epochsPSD, montage, parent=None):
+    def __init__(self, epochsPSD, parent=None):
         super(EpochsPSDWindow, self).__init__(parent)
         self.psd = epochsPSD
         self.ui = Ui_EpochsPSDWindow()
@@ -78,16 +78,6 @@ class EpochsPSDWindow(QDialog):
         self.ui.toolbar = NavigationToolbar(self.ui.canvas, self)
         self.ui.figureLayout.addWidget(self.ui.toolbar)
         self.ui.figureLayout.addWidget(self.ui.canvas)
-
-    def setup_topomaps(self, montage) :
-        """Init parameters for topomap plots"""
-        try :
-            pos = montage.get_pos2d()
-            scale = 0.85 / (pos.max(axis=0) - pos.min(axis=0))
-            center = 0.5 * (pos.max(axis=0) + pos.min(axis=0))
-            self.head_pos = {'scale': scale, 'center': center}
-        except :
-            self.head_pos = None
 
     #=====================================================================
     # Main Plotting function
@@ -280,8 +270,10 @@ class EpochsPSDWindow(QDialog):
         self.psd.plot_single_psd(epoch_picked, channel_picked - 1,
                                  self.f_index_min, self.f_index_max,
                                  axes = ax, log_display = self.log)
+
+        index_ch = self.psd.picks[channel_picked - 1]
         ax.set_title('PSD of Epoch {}, channel {}'.format(epoch_picked + 1,
-                     self.psd.picked_info['ch_names'][channel_picked-1]))
+                     self.psd.info['ch_names'][index_ch]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------
@@ -293,8 +285,10 @@ class EpochsPSDWindow(QDialog):
         self.psd.plot_single_avg_psd(
             channel_picked - 1, self.f_index_min, self.f_index_max,
             axes = ax, log_display = self.log)
+
+        index_ch = self.psd.picks[channel_picked - 1]
         ax.set_title('Average PSD of channel {}'.format(
-                     self.psd.picked_info['ch_names'][channel_picked-1]))
+                     self.psd.info['ch_names'][index_ch]))
         self.set_ax_single_psd(ax)
 
     #---------------------------------------------------------------------
