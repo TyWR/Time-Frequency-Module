@@ -52,11 +52,6 @@ class RawPSD :
         # Create a a sub instance of raw with the picked channels
         if montage is not None :
             self.pos = montage.get_pos2d()
-
-        if picks is not None :
-            self.pos = array([self.pos[i] for i in picks])
-
-        if montage is not None :
             scale = 0.85 / (self.pos.max(axis=0) - self.pos.min(axis=0))
             center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
             self.head_pos = {'scale': scale, 'center': center}
@@ -106,6 +101,33 @@ class RawPSD :
                 n_per_seg = self.n_per_seg,
                 picks = picks)
 
+        # Handling of possible channels without any know coordinates
+        if picks is not None : n_channels = len(self.picks)
+        else :                 n_channels = len(self.info['ch_names'])
+
+        if len(self.pos) != n_channels :
+            from mne.channels import read_montage
+
+            index = 0
+            self.pos = []           # positions
+            self.with_coord = []    # index in the self.data of channels
+                                    # with a cooordinate
+            if picks is None :
+                picks = range(0, len(raw.info['ch_names']))
+            for i in picks :
+                ch_name = raw.info['ch_names'][i]
+                try :
+                    ch_montage = read_montage(
+                    montage.kind, ch_names = [ch_name])
+                    coord = ch_montage.get_pos2d()
+                    self.pos.append(coord[0])
+                    self.with_coord.append(index)
+                except :
+                    pass
+                index += 1
+
+        self.pos = array(self.pos)
+
     #--------------------------------------------------------------------------
     def plot_topomap(self, freq_index, axes = None, log_display = False) :
         """
@@ -116,7 +138,7 @@ class RawPSD :
         """
         from mne.viz import plot_topomap
 
-        psd_values = self.data[:, freq_index]
+        psd_values = self.data[self.with_coord, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
         return plot_topomap(psd_values, self.pos, axes = axes,
                             show = False, cmap = self.cmap,
@@ -136,7 +158,9 @@ class RawPSD :
         from mne.viz import plot_topomap
         from numpy import mean
 
-        psd_mean = mean(self.data[:, freq_index_min : freq_index_max], axis = 1)
+        psd_mean = mean(self.data[self.with_coord,
+                                  freq_index_min : freq_index_max],
+                        axis = 1)
         if log_display : psd_mean = 10 * log(psd_mean)
         return plot_topomap(psd_mean, self.pos, axes = axes,
                             vmin = vmin, vmax = vmax,

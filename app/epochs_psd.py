@@ -19,7 +19,6 @@ class EpochsPSDWindow(QDialog):
         self.ui.setupUi(self)
         self.ui.retranslateUi(self)
         self.setup_window()
-        self.setup_topomaps(montage)
 
     #---------------------------------------------------------------------
     def setup_window(self) :
@@ -166,8 +165,7 @@ class EpochsPSDWindow(QDialog):
             self.cbar_image, _ = self.psd.plot_topomap_band(
                                     epoch_index, f_index_min, f_index_max,
                                     axes = ax, vmin = self.vmin, vmax = vmax,
-                                    log_display = self.log,
-                                    head_pos = self.head_pos)
+                                    log_display = self.log)
 
             ax.set_title("Epoch {}".format(epoch_index + 1),
                          fontsize = 15, fontweight = 'light')
@@ -178,8 +176,7 @@ class EpochsPSDWindow(QDialog):
             self.cbar_image, _ = self.psd.plot_avg_topomap_band(
                                     f_index_min, f_index_max, axes = ax,
                                     vmin = self.vmin, vmax = vmax,
-                                    log_display = self.log,
-                                    head_pos = self.head_pos)
+                                    log_display = self.log)
 
             ax.set_title("Average", fontsize = 15, fontweight = 'light')
 

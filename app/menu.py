@@ -163,7 +163,8 @@ class MenuWindow(QMainWindow) :
             self.eeg_data.set_montage(self.montage)
         elif montage != 'No coordinates' :
             from mne.channels import read_montage
-            self.montage = read_montage(montage)
+            ch_names = self.eeg_data.info['ch_names']
+            self.montage = read_montage(montage, ch_names = ch_names)
             self.eeg_data.set_montage(self.montage)
 
     #---------------------------------------------------------------------

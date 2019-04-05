@@ -56,19 +56,17 @@ class EpochsPSD :
         """
         Computes the PSD of the epochs with the correct method multitaper or welch
         """
+        from numpy import array
+
         # Create a a sub instance of raw with the picked channels
         if montage is not None :
             self.pos = montage.get_pos2d()
-
-        if picks is not None :
-            self.pos = [self.pos[i] for i in picks]
-
-        if montage is not None :
             scale = 0.85 / (self.pos.max(axis=0) - self.pos.min(axis=0))
             center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
             self.head_pos = {'scale': scale, 'center': center}
         else :
             self.head_pos = None
+
 
         self.fmin, self.fmax    = fmin, fmax
         self.tmin, self.tmax    = tmin, tmax
@@ -114,6 +112,32 @@ class EpochsPSD :
                 n_per_seg = self.n_per_seg,
                 picks     = picks)
 
+        # Handling of possible channels without any know coordinates
+        if picks is not None : n_channels = len(self.picks)
+        else :                 n_channels = len(self.info['ch_names'])
+
+        if len(self.pos) != len(self.freqs) :
+            from mne.channels import read_montage
+
+            index = 0
+            self.pos = []           # positions
+            self.with_coord = []    # index in the self.data of channels
+                                    # with a cooordinate
+            if picks is None :
+                picks = range(0, len(epochs.info['ch_names']))
+            for i in picks :
+                ch_name = epochs.info['ch_names'][i]
+                try :
+                    ch_montage = read_montage(
+                    montage.kind, ch_names = [ch_name])
+                    coord = ch_montage.get_pos2d()
+                    self.pos.append(coord[0])
+                    self.with_coord.append(index)
+                except :
+                    pass
+                index += 1
+
+        self.pos = array(self.pos)
     #------------------------------------------------------------------------
     def __str__(self) :
         """Return informations about the instance"""
@@ -155,7 +179,7 @@ class EpochsPSD :
         """
         from mne.viz import plot_topomap
 
-        psd_values = self.data[epoch_index, :, freq_index]
+        psd_values = self.data[epoch_index, self.with_coord, freq_index]
         if log_display : psd_values = 10 * log(psd_values)
         return plot_topomap(psd_values, self.pos, axes = axes,
                             show = False, cmap = self.cmap,
@@ -174,7 +198,9 @@ class EpochsPSD :
         """
         from mne.viz import plot_topomap
 
-        psd_values = self.data[epoch_index, :, freq_index_min : freq_index_max]
+        psd_values = self.data[epoch_index,
+                               self.with_coord,
+                               freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 1)
         if log_display : psd_mean = 10 * log(psd_mean)
         return plot_topomap(psd_mean, self.pos, axes = axes,
@@ -194,7 +220,7 @@ class EpochsPSD :
         """
         from mne.viz import plot_topomap
 
-        psd_values = self.data[:, :, freq_index_min : freq_index_max]
+        psd_values = self.data[:, self.with_coord, freq_index_min : freq_index_max]
         psd_mean = mean(psd_values, axis = 2)  #average over frequency band
         psd_mean = mean(psd_mean,   axis = 0)  #average over epochs
         if log_display : psd_mean = 10 * log(psd_mean)
