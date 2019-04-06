@@ -4,12 +4,19 @@ Development of Time-Frequency module for EEG signal processing, using the librar
 
 [MNE Library Link](https://martinos.org/mne/dev/index.html)
 
+# Installation 
+
+You must have python 3 installed. 
+
+To install the dependencies required for this application, run the line `pip install -r requirements.txt`
+
 To launch the app, simply run the `run_app.py` file.
 
 For now, the app can only treat the data to display the power spectrum density of raw eeg files, and epoched eeg files, with the formats `.fif`, `.sef`, `.ep` and `.eph`.
 
-After building the docker image with the dockerfile, you can run the app with the line : `sudo docker run -it -v /tmp/.X11-unix:/tmp/.X11-unix -v /datapath:/data -e DISPLAY=unix$DISPLAY myapp`.
+## Docker building and running
 
+After building the docker image with the dockerfile, you can run the app with the line : `sudo docker run -it -v /tmp/.X11-unix:/tmp/.X11-unix -v /datapath:/data -e DISPLAY=unix$DISPLAY myapp` on Ubuntu. 
 
 ## Quick Tutorial
 
