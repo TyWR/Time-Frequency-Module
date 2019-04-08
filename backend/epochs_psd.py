@@ -56,17 +56,6 @@ class EpochsPSD :
         """
         Computes the PSD of the epochs with the correct method multitaper or welch
         """
-        from numpy import array
-
-        # Create a a sub instance of raw with the picked channels
-        if montage is not None :
-            self.pos = montage.get_pos2d()
-            scale = 0.85 / (self.pos.max(axis=0) - self.pos.min(axis=0))
-            center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
-            self.head_pos = {'scale': scale, 'center': center}
-        else :
-            self.head_pos = None
-
 
         self.fmin, self.fmax    = fmin, fmax
         self.tmin, self.tmax    = tmin, tmax
@@ -78,7 +67,6 @@ class EpochsPSD :
         self.n_overlap          = kwargs.get('n_overlap', 0)
         self.picks              = picks
         self.cmap               = 'inferno'
-
 
         if method == 'multitaper' :
             from mne.time_frequency import psd_multitaper
@@ -112,32 +100,57 @@ class EpochsPSD :
                 n_per_seg = self.n_per_seg,
                 picks     = picks)
 
-        # Handling of possible channels without any know coordinates
-        if picks is not None : n_channels = len(self.picks)
-        else :                 n_channels = len(self.info['ch_names'])
+        if montage is not None :
+            # First we create variable head_pos for a correct plotting
+            self.pos = montage.get_pos2d()
+            scale = 0.85 / (self.pos.max(axis=0) - self.pos.min(axis=0))
+            center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
+            self.head_pos = {'scale': scale, 'center': center}
 
-        if len(self.pos) != len(self.freqs) :
-            from mne.channels import read_montage
+            # Handling of possible channels without any known coordinates
+            no_coord_channel = False
+            if self.picks is not None :
+                 n_channels = len(self.picks)
+                 names = montage.ch_names
+                 try :
+                     indices = [names.index(epochs.info['ch_names'][i])
+                                for i in self.picks]
+                     self.pos = self.pos[indices, :]
+                 except :
+                     no_coord_channel = False
+            else :
+                n_channels = len(self.info['ch_names'])
+                self.picks = range(0, len(epochs.info['ch_names']))
 
-            index = 0
-            self.pos = []           # positions
-            self.with_coord = []    # index in the self.data of channels
-                                    # with a cooordinate
-            if picks is None :
-                picks = range(0, len(epochs.info['ch_names']))
-            for i in picks :
-                ch_name = epochs.info['ch_names'][i]
-                try :
-                    ch_montage = read_montage(
-                    montage.kind, ch_names = [ch_name])
-                    coord = ch_montage.get_pos2d()
-                    self.pos.append(coord[0])
-                    self.with_coord.append(index)
-                except :
-                    pass
-                index += 1
+            # If there is not as much positions as the number of Channels
+            # we have to eliminate some channels from the data of topomaps
+            if len(self.pos) != n_channels :
+                from mne.channels import read_montage
+                from numpy import array
 
-        self.pos = array(self.pos)
+                index = 0
+                self.pos = []           # positions
+                self.with_coord = []    # index in the self.data of channels
+                                        # with a cooordinate
+                for i in self.picks :
+                    ch_name = epochs.info['ch_names'][i]
+                    try :
+                        ch_montage = read_montage(
+                            montage.kind, ch_names = [ch_name])
+                        coord = ch_montage.get_pos2d()
+                        self.pos.append(coord[0])
+                        self.with_coord.append(index)
+                    except :
+                        pass
+                    index += 1
+                self.pos = array(self.pos)
+
+            else :
+                self.with_coord = [i for i in range(n_channels)]
+
+        else : # If there is no montage available
+            self.head_pos = None
+
     #------------------------------------------------------------------------
     def __str__(self) :
         """Return informations about the instance"""

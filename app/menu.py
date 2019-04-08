@@ -103,11 +103,15 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def init_psd_parameters(self) :
         """Set the parameters in the parameters text slot"""
+
         text = "fmin=0\nfmax=100\ntmin=Default\ntmax=Default\n"
+
         if self.ui.psdMethod.currentText() == 'welch' :
-            text = text + "n_fft=Default\nn_per_seg=Default\nn_overlap =0"
+            text = text + "n_fft=Default\nn_per_seg=Default\nn_overlap=0"
+
         if self.ui.psdMethod.currentText() == 'multitaper' :
             text = text + "bandwidth=4"
+
         self.ui.psdParametersText.setText(text)
 
     #---------------------------------------------------------------------
@@ -156,15 +160,18 @@ class MenuWindow(QMainWindow) :
     #---------------------------------------------------------------------
     def read_montage(self) :
         """Read the montage data"""
+
         montage = self.ui.electrodeMontage.currentText()
+
         if montage == 'Use xyz file' :
             from backend.util import xyz_to_montage
             self.montage = xyz_to_montage(self.ui.xyzPath.text())
             self.eeg_data.set_montage(self.montage)
+
         elif montage != 'No coordinates' :
             from mne.channels import read_montage
             ch_names = self.eeg_data.info['ch_names']
-            self.montage = read_montage(montage, ch_names = ch_names)
+            self.montage = read_montage(montage)
             self.eeg_data.set_montage(self.montage)
 
     #---------------------------------------------------------------------
@@ -224,6 +231,7 @@ class MenuWindow(QMainWindow) :
     # Open epoching window
     #=====================================================================
     def open_epoching_window(self) :
+        """Open epoching window"""
         from app.epoching import EpochingWindow
 
         window = EpochingWindow()
@@ -237,6 +245,7 @@ class MenuWindow(QMainWindow) :
         """Redirect to PSD Visualize app"""
         try :
             self.read_parameters()
+
         except (AttributeError, FileNotFoundError, OSError) :
             self.show_error("Can't find/read file.\n"
                             + "Please verify the path and extension")
@@ -472,8 +481,11 @@ class MenuWindow(QMainWindow) :
     def psd_parameters_path_changed(self) :
         """Gets called when PSD parameters are changed"""
         self.psdParametersPath = self.ui.psdParametersLine.text()
-        (self.ui.psdParametersText
-            .setText(open(self.psdParametersPath, 'r').read()))
+        try :
+            (self.ui.psdParametersText
+                .setText(open(self.psdParametersPath, 'r').read()))
+        except :
+            self.show_error('Path to parameters not found :(')
 
     #---------------------------------------------------------------------
     def choose_xyz_path(self) :
@@ -569,6 +581,7 @@ class MenuWindow(QMainWindow) :
             self.show_error("Please initialize the EEG data"
                             + " before proceeding.")
 
+    #---------------------------------------------------------------------
     def set_selected_ch(self, selected) :
         """Set selected channels"""
         self.selected_ch = selected
