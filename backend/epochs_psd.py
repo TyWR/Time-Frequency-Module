@@ -47,8 +47,6 @@ class EpochsPSD :
     plot_single_avg_psd         : Plot the PSD averaged over epochs for a given
                                   channel
     """
-
-    #------------------------------------------------------------------------
     def __init__(self, epochs, fmin = 0, fmax = 1500,
                  tmin = None, tmax = None,
                  method = 'multitaper', picks = None,
@@ -65,40 +63,13 @@ class EpochsPSD :
         self.n_fft              = kwargs.get('n_fft', 256)
         self.n_per_seg          = kwargs.get('n_per_seg', self.n_fft)
         self.n_overlap          = kwargs.get('n_overlap', 0)
-        self.picks              = picks
         self.cmap               = 'inferno'
 
-        if method == 'multitaper' :
-            from mne.time_frequency import psd_multitaper
 
-            print("Computing Mulitaper PSD with parameter bandwidth = {}"
-            .format(self.bandwidth))
-            self.data, self.freqs = psd_multitaper(
-                epochs,
-                fmin             = fmin,
-                fmax             = fmax,
-                tmin             = tmin,
-                tmax             = tmax,
-                normalization    = 'full',
-                bandwidth        = self.bandwidth,
-                picks            = picks)
-
-        if method == 'welch'      :
-            from mne.time_frequency import psd_welch
-
-            print("Computing Welch PSD with parameters"
-                  + " n_fft = {}, n_per_seg = {}, n_overlap = {}"
-                  .format(self.n_fft, self.n_per_seg, self.n_overlap))
-            self.data, self.freqs = psd_welch(
-                epochs,
-                fmin      = fmin,
-                fmax      = fmax,
-                tmin      = tmin,
-                tmax      = tmax,
-                n_fft     = self.n_fft,
-                n_overlap = self.n_overlap,
-                n_per_seg = self.n_per_seg,
-                picks     = picks)
+        if picks is not None :
+            self.picks = picks
+        else :
+            self.picks = range(0, len(epochs.info['ch_names']))
 
         if montage is not None :
             # First we create variable head_pos for a correct plotting
@@ -109,22 +80,18 @@ class EpochsPSD :
 
             # Handling of possible channels without any known coordinates
             no_coord_channel = False
-            if self.picks is not None :
-                 n_channels = len(self.picks)
-                 names = montage.ch_names
-                 try :
-                     indices = [names.index(epochs.info['ch_names'][i])
-                                for i in self.picks]
-                     self.pos = self.pos[indices, :]
-                 except :
-                     no_coord_channel = False
-            else :
-                n_channels = len(self.info['ch_names'])
-                self.picks = range(0, len(epochs.info['ch_names']))
+            try :
+                names = montage.ch_names
+                indices = [names.index(epochs.info['ch_names'][i])
+                           for i in self.picks]
+                self.pos = self.pos[indices, :]
+            except :
+                no_coord_channel = True
 
             # If there is not as much positions as the number of Channels
             # we have to eliminate some channels from the data of topomaps
-            if len(self.pos) != n_channels :
+            if no_coord_channel :
+                print('got here')
                 from mne.channels import read_montage
                 from numpy import array
 
@@ -146,10 +113,42 @@ class EpochsPSD :
                 self.pos = array(self.pos)
 
             else :
-                self.with_coord = [i for i in range(n_channels)]
+                self.with_coord = [i for i in range(len(self.picks))]
 
         else : # If there is no montage available
             self.head_pos = None
+
+        if method == 'multitaper' :
+            from mne.time_frequency import psd_multitaper
+
+            print("Computing Mulitaper PSD with parameter bandwidth = {}"
+            .format(self.bandwidth))
+            self.data, self.freqs = psd_multitaper(
+                epochs,
+                fmin             = fmin,
+                fmax             = fmax,
+                tmin             = tmin,
+                tmax             = tmax,
+                normalization    = 'full',
+                bandwidth        = self.bandwidth,
+                picks            = self.picks)
+
+        if method == 'welch'      :
+            from mne.time_frequency import psd_welch
+
+            print("Computing Welch PSD with parameters"
+                  + " n_fft = {}, n_per_seg = {}, n_overlap = {}"
+                  .format(self.n_fft, self.n_per_seg, self.n_overlap))
+            self.data, self.freqs = psd_welch(
+                epochs,
+                fmin      = fmin,
+                fmax      = fmax,
+                tmin      = tmin,
+                tmax      = tmax,
+                n_fft     = self.n_fft,
+                n_overlap = self.n_overlap,
+                n_per_seg = self.n_per_seg,
+                picks     = self.picks)
 
     #------------------------------------------------------------------------
     def __str__(self) :

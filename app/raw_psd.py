@@ -75,7 +75,12 @@ class RawPSDWindow(QDialog):
     def plot_psd(self, f_index_min, f_index_max, vmax) :
         """Plot the correct type of PSD"""
         if self.plotType == "Topomap" :
-            self.plot_topomap(f_index_min, f_index_max, vmax)
+            try :
+                self.plot_topomap(f_index_min, f_index_max, vmax)
+            except :
+                self.show_error(
+                    "No coordinates for topomap have been initialized :(")
+                self.ui.selectPlotType.setCurrentIndex(0)
         if self.plotType == "PSD Matrix" :
             self.plot_matrix(f_index_min, f_index_max, vmax)
 
@@ -204,3 +209,14 @@ class RawPSDWindow(QDialog):
         f_index_max = min(len(self.psd.freqs) - 1, f_index_max)
         f_index_min = max(0, f_index_min)
         return f_index_min, f_index_max
+
+    #---------------------------------------------------------------------
+    def show_error(self, msg) :
+        """Display window with an error message"""
+        error = QMessageBox()
+        error.setBaseSize(QSize(800, 200))
+        error.setIcon(QMessageBox.Warning)
+        error.setInformativeText(msg)
+        error.setWindowTitle("Error")
+        error.setStandardButtons(QMessageBox.Ok)
+        error.exec_()

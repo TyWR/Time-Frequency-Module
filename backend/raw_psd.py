@@ -3,7 +3,7 @@ from numpy import log
 
 class RawPSD :
     """
-    This class contains the PSD of a set of Epochs. It stores the data of the
+    This class contains the PSD of a set of Raw Data. It stores the data of the
     psds of each epoch. The psds are calculated with the Library mne.
 
     Attributes :
@@ -16,7 +16,7 @@ class RawPSD :
 
     tmax        (float)         : higher time bound for each epoch
 
-    info        (mne Infos)     : info of the epochs
+    info        (mne Infos)     : info of the raw data
 
     method      (str)           : method used for PSD (multitaper or welch)
 
@@ -33,11 +33,12 @@ class RawPSD :
                                   frequency and epoch.
 
     plot_avg_topomap_band       : Plot the map of the power for a given
-                                  band, averaged over epochs.
+                                  band, averaged over data
 
     plot_matrix                 : Plot the raw matrix.
 
     plot_single_psd             : Plot the PSD for a given epoch and channel
+
     """
     #--------------------------------------------------------------------------
     def __init__(self, raw, fmin = 0, fmax = 1500,
@@ -57,40 +58,12 @@ class RawPSD :
         self.n_fft           = kwargs.get('n_fft', 256)
         self.n_per_seg       = kwargs.get('n_per_seg', self.n_fft)
         self.n_overlap       = kwargs.get('n_overlap', 0)
-        self.picks           = picks
         self.cmap            = 'inferno'
 
-        if method == 'multitaper' :
-            from mne.time_frequency import psd_multitaper
-
-            print("Computing Mulitaper PSD with parameter bandwidth = {}"
-                  .format(self.bandwidth))
-            self.data, self.freqs = psd_multitaper(
-                raw,
-                fmin             = fmin,
-                fmax             = fmax,
-                tmin             = tmin,
-                tmax             = tmax,
-                normalization    = 'full',
-                bandwidth        = self.bandwidth,
-                picks            = picks)
-
-        if method == 'welch'      :
-            from mne.time_frequency import psd_welch
-
-            print(("Computing Welch PSD with parameters n_fft = {},"
-                  +" n_per_seg = {}, n_overlap = {}")
-                  .format(self.n_fft, self.n_per_seg, self.n_overlap))
-            self.data, self.freqs = psd_welch(
-                raw,
-                fmin      = fmin,
-                fmax      = fmax,
-                tmin      = tmin,
-                tmax      = tmax,
-                n_fft     = self.n_fft,
-                n_overlap = self.n_overlap,
-                n_per_seg = self.n_per_seg,
-                picks = picks)
+        if picks is not None :
+            self.picks = picks
+        else :
+            self.picks = range(0, len(raw.info['ch_names']))
 
         if montage is not None :
             # First we create variable head_pos for a correct plotting
@@ -99,20 +72,15 @@ class RawPSD :
             center = 0.5 * (self.pos.max(axis=0) + self.pos.min(axis=0))
             self.head_pos = {'scale': scale, 'center': center}
 
-            # Handling of possible channels without any know coordinates
+            # Handling of possible channels without any known coordinates
             no_coord_channel = False
-            if self.picks is not None :
-                n_channels = len(self.picks)
+            try :
                 names = montage.ch_names
-                try :
-                    indices = [names.index(raw.info['ch_names'][i])
-                               for i in self.picks]
-                    self.pos = self.pos[indices, :]
-                except :
-                    no_coord_channel = True
-            else :
-                n_channels = len(self.info['ch_names'])
-                self.picks = range(0, len(raw.info['ch_names']))
+                indices = [names.index(raw.info['ch_names'][i])
+                           for i in self.picks]
+                self.pos = self.pos[indices, :]
+            except :
+                no_coord_channel = True
 
             # If there is not as much positions as the number of Channels
             # we have to eliminate some channels from the data of topomaps
@@ -138,10 +106,42 @@ class RawPSD :
                 self.pos = array(self.pos)
 
             else :
-                self.with_coord = [i for i in range(n_channels)]
+                self.with_coord = [i for i in range(len(self.picks))]
 
-        else :
+        else : # If there is no montage available
             self.head_pos = None
+
+        if method == 'multitaper' :
+            from mne.time_frequency import psd_multitaper
+
+            print("Computing Mulitaper PSD with parameter bandwidth = {}"
+                  .format(self.bandwidth))
+            self.data, self.freqs = psd_multitaper(
+                raw,
+                fmin             = fmin,
+                fmax             = fmax,
+                tmin             = tmin,
+                tmax             = tmax,
+                normalization    = 'full',
+                bandwidth        = self.bandwidth,
+                picks            = self.picks)
+
+        if method == 'welch'      :
+            from mne.time_frequency import psd_welch
+
+            print(("Computing Welch PSD with parameters n_fft = {},"
+                  +" n_per_seg = {}, n_overlap = {}")
+                  .format(self.n_fft, self.n_per_seg, self.n_overlap))
+            self.data, self.freqs = psd_welch(
+                raw,
+                fmin      = fmin,
+                fmax      = fmax,
+                tmin      = tmin,
+                tmax      = tmax,
+                n_fft     = self.n_fft,
+                n_overlap = self.n_overlap,
+                n_per_seg = self.n_per_seg,
+                picks = self.picks)
 
     #--------------------------------------------------------------------------
     def plot_topomap(self, freq_index, axes = None, log_display = False) :
