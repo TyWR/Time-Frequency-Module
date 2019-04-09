@@ -20,7 +20,6 @@ After building the docker image with the dockerfile, you can run the app with th
 
 ## Quick Tutorial
 
-![Main Window](https://github.com/fcbg-hnp/eeg-timeFreqToolbox/assets/mainwindow.png)
 
 First import your file which can be either a raw file (format `*.fif` or `*.sef`), or epoched data (format `.epo-fif`).
 
@@ -32,7 +31,11 @@ The application also comes with an handy tool to process raw data files into epo
 
  * **PSD (Power Spectrum Density)** : Which computes the power spectrum density of the signal. You can display the results either in the form of a matrix (Simple plot of individual Channels by Frequencies), or as a topomap (Power of electrode represented on the scalp). It is also possible to run across the different epochs if the file is epoched data.
 
+ ![PSD Window](https://github.com/fcbg-hnp/eeg-timeFreqToolbox/assets/psdwindow.png)
+
  * **Average TFR (Average Time-Frequency)** : Which computes the time-frequency representation of the signal averaged over epochs. This feature only works on epoched data. You can either display the results on regular time-frequency representation (Time by Frequency), or displays it in differents ways channels by frequencies, or channels by time.
+
+  ![PSD Window](https://github.com/fcbg-hnp/eeg-timeFreqToolbox/assets/tfrwindow.png)
 
 
 ## Parameters handling
