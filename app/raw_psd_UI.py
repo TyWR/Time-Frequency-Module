@@ -158,7 +158,7 @@ class Ui_RawPSDWindow(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "PSD Visualizer"))
+        Dialog.setWindowTitle(_translate("Dialog", "Raw data PSD Visualizer"))
         self.selectPlotLabel.setText(_translate("Dialog", "Select Plot Type  "))
         self.frequencyLabel.setText(_translate("Dialog", "Frequency Range Display (min - max)"))
         self.vmaxLabel.setText(_translate("Dialog", "Scaling "))

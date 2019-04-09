@@ -342,7 +342,7 @@ class Ui_MenuWindow(object):
 
     def retranslateUi(self, MenuWindow):
         _translate = QtCore.QCoreApplication.translate
-        MenuWindow.setWindowTitle(_translate("MenuWindow", "PSD Frequency Visualizer"))
+        MenuWindow.setWindowTitle(_translate("MenuWindow", "Time-Frequency Visualizer"))
         self.pathButton.setText(_translate("MenuWindow", "Choose Path"))
         self.displayDataButton.setText(_translate("MenuWindow", "Data Informations"))
         self.plotData.setText(_translate("MenuWindow", "Visualize Data"))

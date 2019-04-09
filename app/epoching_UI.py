@@ -108,7 +108,7 @@ class EpochingWindowUI(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Raw Data to Epochs cutting window"))
         self.label.setText(_translate("Dialog", "Raw Data Path"))
         self.rawPathButton.setText(_translate("Dialog", "Path"))
         self.plotRawButton.setText(_translate("Dialog", "Visualize Raw Data"))

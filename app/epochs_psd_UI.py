@@ -173,7 +173,7 @@ class Ui_EpochsPSDWindow(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "PSD Visualizer"))
+        Dialog.setWindowTitle(_translate("Dialog", "Epochs PSD Visualizer"))
         self.frequencyLabel.setText(_translate("Dialog", "Frequency Range Display (min - max)"))
         self.vmaxLabel.setText(_translate("Dialog", "Scaling "))
         self.selectPlotLabel.setText(_translate("Dialog", "Select Plot Type  "))
