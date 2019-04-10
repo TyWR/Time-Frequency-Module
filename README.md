@@ -1,5 +1,7 @@
 # Time-Frequency-Module
 
+## This is an old personal repository, please checkout here : https://github.com/fcbg-hnp/eeg-timeFreqToolbox
+
 Development of Time-Frequency module for EEG signal processing, using the library MNE and Qt.
 
 [MNE Library Link](https://martinos.org/mne/dev/index.html)
